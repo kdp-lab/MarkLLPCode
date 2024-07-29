@@ -5,7 +5,6 @@ import json
 from math import *
 import numpy as np
 
-print("test")
 # ############## SETUP #############################
 # Prevent ROOT from drawing while you're running -- good for slow remote servers
 # Instead, save files and view them with an sftp client like Fetch (feel free to ask me for my UTK license)
@@ -24,7 +23,7 @@ def check_hard_radiation(mcp, fractional_threshold):
                 had_hard_rad = True   
     return had_hard_rad
 
-def acceptanceCuts(mcp):
+def acceptanceCutsOld(mcp):
     r_vertex = sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1] ** 2)
     r_endpoint = sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1] ** 2)
     print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
@@ -32,29 +31,59 @@ def acceptanceCuts(mcp):
     z_endpoint = mcp.getEndpoint()[2]
     trvl_dist = sqrt(r_endpoint ** 2 + z_vertex ** 2) - sqrt(r_vertex ** 2 + z_vertex ** 2)
     if r_vertex < 552.0 and r_endpoint > 105.0 and abs(z_vertex) < 1000.0: # produced within itk, decay outside of vxd
-        if r_vertex > 51.0 and travel_dist < 350.0: 
-            print("stau is not reconstructable (type 2), with z_vertex, endpoint of:", z_vertex, z_endpoint)
-            reconstructable = False
         reconstructable = True
-        print("stau is reconstructable, with z_vertex, endpoint of:", z_vertex, z_endpoint)
+        
+        print("stau is possibly reconstructable, with z_vertex, endpoint of:", z_vertex, z_endpoint)
     else:
         reconstructable = False
         print("stau is not reconstructable (type 1), with z_vertex, endpoint of:", z_vertex, z_endpoint)
     if trvl_dist < 20.0: 
         print("TOO SHORT LIVED TO CROSS TWO LAYERS")
         reconstructable = False
+    if r_vertex > 51.0 and travel_dist < 350.0: 
+            print("stau is not reconstructable (type 2), with z_vertex, endpoint of:", z_vertex, z_endpoint)
+            #reconstructable = False
+    return reconstructable
+"""
+def acceptanceCutsPrompt(mcp):
+    r_vertex = sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1] ** 2)
+    r_endpoint = sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1] ** 2)
+    print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
+    z_vertex = mcp.getVertex()[2]
+    z_endpoint = mcp.getEndpoint()[2]
+    #trvl_dist = sqrt(r_endpoint ** 2 + z_vertex ** 2) - sqrt(r_vertex ** 2 + z_vertex ** 2)
+    if r_endpoint > 105.0: # produced within itk, decay outside of vxd
+        reconstructable = True
+        print("stau is reconstructable, with z_vertex, endpoint of:", z_vertex, z_endpoint)
+    else:
+        reconstructable = False
+        print("stau is not reconstructable (type 1), with z_vertex, endpoint of:", z_vertex, z_endpoint)
     return reconstructable
 
-
+def acceptanceCutsDisplaced(mcp):
+    r_vertex = sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1] ** 2)
+    r_endpoint = sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1] ** 2)
+    print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
+    z_vertex = mcp.getVertex()[2]
+    z_endpoint = mcp.getEndpoint()[2]
+    #trvl_dist = sqrt(r_endpoint ** 2 + z_vertex ** 2) - sqrt(r_vertex ** 2 + z_vertex ** 2)
+    if r_vertex < 552.0 and r_endpoint > 1490.0: # produced within itk, decay outside ot
+        reconstructable = True
+        print("displaced product is reconstructable, with z_vertex, endpoint of:", z_vertex, z_endpoint)
+    else:
+        reconstructable = False
+        print("stau is not reconstructable (type 1), with z_vertex, endpoint of:", z_vertex, z_endpoint)
+    return reconstructable
+"""
 # Gather input files
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
-base_path = "/home/larsonma/Leo-LLPs-Code/reco_new/"
+base_path = "/home/larsonma/MarkLLPCode/reco/"
 sampleNames = ["1000_0.05", "1000_0.1", "1000_1", "1000_10"]
 #sampleNames = ["1000_0.05"]
 # Loop over sample names to construct file paths
 for sample in sampleNames:
     # Use glob to get the file paths
-    file_pattern = f"{base_path}{sample}_reco.slcio"
+    file_pattern = f"{base_path}{sample}_reco_OT.slcio"
     print("file_pattern: ", file_pattern)
     fnames = glob.glob(file_pattern)
     print("Found %i files."%len(fnames))
@@ -77,6 +106,7 @@ for sample in sampleNames:
     mcp_stau_z0 = []
     mcp_stau_track_bool = []
     mcp_stau_track_reconstructable_bool = []
+    mcp_two_stau_track_bool = []
 
     mcp_daughter_pt = [] #daughter_mcp = decay products of tau from stau
     mcp_daughter_phi = []
@@ -136,6 +166,10 @@ for sample in sampleNames:
     LC_stau_outer_nhits = []
     LC_stau_pt_res = [] 
     LC_stau_dr = []
+    LC_stau_hit_r = []
+    LC_stau_hit_x = []
+    LC_stau_hit_y = []
+    LC_stau_hit_z = []
 
     ### NEXT FOR DAUGHTERS OF TAUS (FROM STAUS) (antcipate tracks to be displaced)
     LC_daughter_pt_match = []
@@ -248,10 +282,11 @@ for sample in sampleNames:
 
             # Print all the collection names in the event
             collection_names = event.getCollectionNames()
-            #print("Collections in event %i: " % i)
-            #print("COLLECTION NAMES: ")
-            #for name in collection_names:
-            #    print(name)
+            if (ievt == 0):
+                print("COLLECTION NAMES: ")
+                for name in collection_names:
+                    print(name)
+            
 
             #has_pfo_stau = False
             
@@ -420,6 +455,7 @@ for sample in sampleNames:
             imcp_stau_z0 = []
             imcp_stau_track_bool = []
             imcp_stau_track_reconstructable_bool = []
+            imcp_two_stau_track_bool = []
 
             imcp_daughter_pt = []
             imcp_daughter_eta = []
@@ -497,7 +533,7 @@ for sample in sampleNames:
                     print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
                     z_vertex = mcp.getVertex()[2]
                     z_endpoint = mcp.getEndpoint()[2]
-                    stau_reconstructable = acceptanceCuts(mcp)
+                    stau_reconstructable = acceptanceCutsOld(mcp)
                     if stau_reconstructable:
                         num_reconstructable_stau_tracks += 1
                     """
@@ -518,8 +554,52 @@ for sample in sampleNames:
                             stauHasTrack = True ### if there is a track related to this stau 
                             if (len(tracks) > 1):
                                 num_dupes += 1 ### FIXME only stau duplicate tracks right now
-
+                        two_stau_track_bool = False
                         for track in tracks:
+                            ii_staux = []
+                            ii_stauy = []
+                            ii_stauz = []
+                            ii_staur = []
+                            LC_pixel_nhit = 0
+                            LC_inner_nhit = 0
+                            LC_outer_nhit = 0
+                            lastLayer = -1
+                            nLayersCrossed = 0
+                            for hit in track.getTrackerHits():
+                                # now decode hits
+                                encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
+                                decoder = pyLCIO.UTIL.BitField64(encoding)
+                                cellID = int(hit.getCellID0())
+                                decoder.setValue(cellID)
+                                detector = decoder["system"].value()
+                                layer = decoder['layer'].value()
+                                if (lastLayer != layer):
+                                    print("increment nlayerscrossed")
+                                    nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+                                print("hit layer: ", layer)
+                                position = hit.getPosition()
+                                pos_x = position[0]
+                                pos_y = position[1]
+                                pos_z = position[2]
+                                print("pos_x, pos_y, pos_z:", pos_x, pos_y, pos_z)
+                                pos_r = sqrt(pos_x ** 2 + pos_y ** 2)
+                                if detector == 1 or detector == 2:
+                                    LC_pixel_nhit += 1
+                                if detector == 3 or detector == 4:
+                                    LC_inner_nhit += 1
+                                if detector == 5 or detector == 6:
+                                    LC_outer_nhit += 1
+                                lastLayer = layer
+                                ii_staur.append(pos_r)
+                                ii_staux.append(pos_x)
+                                ii_stauy.append(pos_y) 
+                                ii_stauz.append(pos_z)
+
+                            
+
+
+
+                            
                             theta = np.pi/2- np.arctan(track.getTanLambda())
                             phi = track.getPhi()
                             eta = -np.log(np.tan(theta/2))
@@ -532,41 +612,41 @@ for sample in sampleNames:
                             ptres = abs(mcp_tlv.Perp() - pt) / (mcp_tlv.Perp())
                             d0 = track.getD0()
                             z0 = track.getZ0()
-                            LC_stau_pt_match.append(mcp_tlv.Perp())
-                            LC_stau_track_pt.append([pt])
-                            LC_stau_track_eta.append([eta])
-                            LC_stau_eta_match.append(mcp_tlv.Eta())
-                            LC_stau_track_theta.append([theta])
-                            LC_stau_phi_match.append([phi])
-                            LC_stau_ndf.append([track.getNdf()])
-                            LC_stau_chi2.append([track.getChi2()])
-                            LC_stau_d0.append([d0])
-                            LC_stau_z0.append([z0])
-                            LC_stau_nhits.append([nhitz])
-                            LC_stau_pt_res.append([ptres])
-                            LC_stau_dr.append([dr])
 
-                            LC_pixel_nhit = 0
-                            LC_inner_nhit = 0
-                            LC_outer_nhit = 0
-                            for hit in track.getTrackerHits():
-                            # now decode hits
-                                encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
-                                decoder = pyLCIO.UTIL.BitField64(encoding)
-                                cellID = int(hit.getCellID0())
-                                decoder.setValue(cellID)
-                                detector = decoder["system"].value()
-                                if detector == 1 or detector == 2:
-                                    LC_pixel_nhit += 1
-                                if detector == 3 or detector == 4:
-                                    LC_inner_nhit += 1
-                                if detector == 5 or detector == 6:
-                                    LC_outer_nhit += 1
-                            LC_stau_pixel_nhits.append([LC_pixel_nhit])
-                            LC_stau_inner_nhits.append([LC_inner_nhit])
-                            LC_stau_outer_nhits.append([LC_outer_nhit])
-                            print("found matched track")
-                            num_matched_stau_tracks += 1
+                            stau_track_mcps = lcRelation.getRelatedFromObjects(track)
+                            print("num mcps associated to stau track:", len(stau_track_mcps))
+                            print("stau track pdgs:", [mcp.getPDG() for mcp in stau_track_mcps])
+                            if (len(stau_track_mcps) > 1 & len(set(stau_track_mcps)) == 0):
+                                two_stau_track_bool = True
+                                print("two staus associated to this track")
+                            
+                            if (nLayersCrossed < 4):
+                                print("stau track doesn't pass n layers / n hits cut")
+                            else:
+                                print("found matched track")
+                                num_matched_stau_tracks += 1
+                                imcp_two_stau_track_bool.append(two_stau_track_bool)
+                                LC_stau_pt_match.append(mcp_tlv.Perp())
+                                LC_stau_track_pt.append([pt])
+                                LC_stau_track_eta.append([eta])
+                                LC_stau_eta_match.append(mcp_tlv.Eta())
+                                LC_stau_track_theta.append([theta])
+                                LC_stau_phi_match.append([phi])
+                                LC_stau_ndf.append([track.getNdf()])
+                                LC_stau_chi2.append([track.getChi2()])
+                                LC_stau_d0.append([d0])
+                                LC_stau_z0.append([z0])
+                                LC_stau_nhits.append([nhitz])
+                                LC_stau_pt_res.append([ptres])
+                                LC_stau_dr.append([dr])
+                                LC_stau_pixel_nhits.append([LC_pixel_nhit])
+                                LC_stau_inner_nhits.append([LC_inner_nhit])
+                                LC_stau_outer_nhits.append([LC_outer_nhit])
+                                LC_stau_hit_r.append(ii_staur)
+                                LC_stau_hit_x.append(ii_staux)
+                                LC_stau_hit_y.append(ii_stauy)
+                                LC_stau_hit_z.append(ii_stauz)
+
                     imcp_stau_track_bool.append(stauHasTrack)
                     imcp_stau_track_reconstructable_bool.append(stau_reconstructable)
                     print("truth stau d0, z0, has matched track: ", stau_d0, stau_z0, stauHasTrack) ### end mcp loop 
@@ -616,7 +696,7 @@ for sample in sampleNames:
 
                             print("daughter d0, z0: ", daughter_d0, daughter_z0)
 
-                            if acceptanceCuts(mcpDaughter):
+                            if acceptanceCutsOld(mcpDaughter):
                                 daughter_reconstructable = True
                                 print("recoable daughter 1")
                                 n_recoable_daughter += 1
@@ -636,7 +716,7 @@ for sample in sampleNames:
                                     track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
                                     dr = mcp_daughter_tlv.DeltaR(track_tlv)
                                     nhitz = track.getTrackerHits().size()
-                                    print("nhitz: ", nhitz)
+                                    print("daughter hits: ", nhitz)
                                     ptres = abs(mcp_daughter_tlv.Perp() - pt) / (mcp_daughter_tlv.Perp())
                                     d0 = track.getD0()
                                     z0 = track.getZ0()
@@ -717,7 +797,7 @@ for sample in sampleNames:
                                 imcp_daughter_z0.append(daughter_z0)
 
                                 print("daughter d0, z0: ", daughter_d0, daughter_z0)
-                                if acceptanceCuts(mcpDaughterDaughter):
+                                if acceptanceCutsOld(mcpDaughterDaughter):
                                     daughter_reconstructable = True
                                     n_recoable_daughter += 1
                                     print("recoable daughter 2")
@@ -802,17 +882,86 @@ for sample in sampleNames:
                 mcp_stau_d0.append(imcp_stau_d0)
                 mcp_stau_z0.append(imcp_stau_z0)  
                 mcp_stau_track_bool.append(imcp_stau_track_bool)
+                mcp_two_stau_track_bool.append(imcp_two_stau_track_bool)
                 mcp_stau_track_reconstructable_bool.append(imcp_stau_track_reconstructable_bool)
 
             # Loop over the track objects
             for track in trackCollection:
+                # Hit per track
+                iix = []
+                iiy = []
+                iiz = []
+                iihit_pdg = []
+                iitime = []
+                iicorrected_time = []
+                iihit_layer = []
+                iihit_detector = []
+                iihit_side = []
+                
+                pixel_nhit = 0
+                inner_nhit = 0
+                outer_nhit = 0
+                lastLayer = -1
+                nLayersCrossed = 0 
+                for hit in track.getTrackerHits():
+                    try:
+                        mcp = hit.getMCParticle()
+                        hit_pdg = mcp.getPDG()
+                    except:
+                        hit_pdg = 0
+                    # now decode hits
+                    encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
+                    decoder = pyLCIO.UTIL.BitField64(encoding)
+                    cellID = int(hit.getCellID0())
+                    decoder.setValue(cellID)
+                    detector = decoder["system"].value()
+                    layer = decoder['layer'].value()
+                    side = decoder["side"].value()
+                    if (lastLayer != layer):
+                        nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+                    if detector == 1 or detector == 2:
+                        pixel_nhit += 1
+                    if detector == 3 or detector == 4:
+                        inner_nhit += 1
+                    if detector == 5 or detector == 6:
+                        outer_nhit += 1
+                    position = hit.getPosition()
+                    pos_x = position[0]
+                    pos_y = position[1]
+                    pos_z = position[2]
+
+                    d = sqrt(position[0]*position[0] + position[1]
+                    * position[1] + position[2]*position[2])
+                    tof = d/speedoflight
+
+                    resolution = 0.03
+                    if detector > 2:
+                        resolution = 0.06
+
+                    corrected_t = hit.getTime()*(1.+ROOT.TRandom3(ievt).Gaus(0., resolution)) - tof
+                    
+                    iix.append(pos_x)
+                    iiy.append(pos_y)
+                    iiz.append(pos_z)
+                    iihit_pdg.append(hit_pdg)
+                    iitime.append(hit.getTime())
+                    iicorrected_time.append(corrected_t)
+                    iihit_detector.append(detector)
+                    iihit_layer.append(layer)
+                    iihit_side.append(side)
+                    lastLayer = layer
+                if(nLayersCrossed < 4):
+                    print("track did not pass n layers / n hits cut")
+                    continue
                 track_mcps = lcRelation.getRelatedFromObjects(track)
-                if len(track_mcps) > 2: 
+                if len(track_mcps) > 1: 
                     pdg_ids = [mcp.getPDG() for mcp in track_mcps]
+                    print("fake pdgids?:", pdg_ids)
                     # Check if all PDG IDs are the same
-                    if len(set(pdg_ids)) == -1:
+                    if len(set(pdg_ids)) != 0:
                         num_fake_tracks += 1
-                        print("fake track??")
+                        print("fake track with pdgids:")
+                        
                     
                 if len(track_mcps) < 1: ### FAKE TRACK (NO MCPS RELATED)
                     theta = np.pi/2- np.arctan(track.getTanLambda())
@@ -881,66 +1030,6 @@ for sample in sampleNames:
                 indf.append(track.getNdf())
                 ichi2.append(track.getChi2())
                 # print("Reco pt, eta, phi, nhits, dr:", pt, eta, phi, nhitz, dr)
-
-                # Hit per track
-                iix = []
-                iiy = []
-                iiz = []
-                iihit_pdg = []
-                iitime = []
-                iicorrected_time = []
-                iihit_layer = []
-                iihit_detector = []
-                iihit_side = []
-                
-                pixel_nhit = 0
-                inner_nhit = 0
-                outer_nhit = 0
-                for hit in track.getTrackerHits():
-                        try:
-                            mcp = hit.getMCParticle()
-                            hit_pdg = mcp.getPDG()
-                        except:
-                            hit_pdg = 0
-                    # now decode hits
-                        encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
-                        decoder = pyLCIO.UTIL.BitField64(encoding)
-                        cellID = int(hit.getCellID0())
-                        decoder.setValue(cellID)
-                        detector = decoder["system"].value()
-                        layer = decoder['layer'].value()
-                        side = decoder["side"].value()
-                        if detector == 1 or detector == 2:
-                            pixel_nhit += 1
-                        if detector == 3 or detector == 4:
-                            inner_nhit += 1
-                        if detector == 5 or detector == 6:
-                            outer_nhit += 1
-                        position = hit.getPosition()
-                        pos_x = position[0]
-                        pos_y = position[1]
-                        pos_z = position[2]
-
-                        d = sqrt(position[0]*position[0] + position[1]
-                        * position[1] + position[2]*position[2])
-                        tof = d/speedoflight
-
-                        resolution = 0.03
-                        if detector > 2:
-                            resolution = 0.06
-
-                        corrected_t = hit.getTime()*(1.+ROOT.TRandom3(ievt).Gaus(0., resolution)) - tof
-                        
-                        iix.append(pos_x)
-                        iiy.append(pos_y)
-                        iiz.append(pos_z)
-                        iihit_pdg.append(hit_pdg)
-                        iitime.append(hit.getTime())
-                        iicorrected_time.append(corrected_t)
-                        iihit_detector.append(detector)
-                        iihit_layer.append(layer)
-                        iihit_side.append(side)
-
 
                 pixel_nhits.append([pixel_nhit])
                 inner_nhits.append([inner_nhit])
@@ -1130,6 +1219,11 @@ for sample in sampleNames:
         data_list["LC_stau_outer_nhits"] = LC_stau_outer_nhits
         data_list["LC_stau_pt_res"] = LC_stau_pt_res
         data_list["LC_stau_dr"] = LC_stau_dr
+        data_list["LC_stau_hit_r"] = LC_stau_hit_r
+        data_list["LC_stau_hit_x"] = LC_stau_hit_x
+        data_list["LC_stau_hit_y"] = LC_stau_hit_y
+        data_list["LC_stau_hit_z"] = LC_stau_hit_z
+        data_list["mcp_two_stau_track_bool"] = mcp_two_stau_track_bool
 
         ### FOR STAU CHARGED DECAY PRODUCTS MATCHED TRACKS
         data_list["LC_daughter_pt_match"] = LC_daughter_pt_match

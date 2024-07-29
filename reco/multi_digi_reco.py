@@ -6,7 +6,7 @@ import re
 
 # Define the run_marlin function within the script
 def run_marlin(input_file, bib, reco, output_directory):
-    base_dir = "/home/larsonma/Leo-LLPs-Code"
+    base_dir = "/home/larsonma/MarkLLPCode"
     if reco:
         steering_file = f"{base_dir}/mucoll-benchmarks/reconstruction/marlin/reco_steer.xml"
         default_output_dir = f"{base_dir}/reco_Hbb{'_bib' if bib else ''}"
@@ -60,11 +60,11 @@ if __name__ == "__main__":
         base_directory = "/local/d1/mu+mu-/digi_bib"
         output_directory = "/local/d1/mu+mu-/reco_bib"
     elif args.reco:
-        base_directory = "/home/larsonma/Leo-LLPs-Code/digi_keepCols"
-        output_directory = "/home/larsonma/Leo-LLPs-Code/reco_S_CR"
+        base_directory = "/home/larsonma/MarkLLPCode/digi_keepCols"
+        output_directory = "/home/larsonma/MarkLLPCode/reco"
     else:
-        base_directory = "/home/larsonma/Leo-LLPs-Code/sim_1000"
-        output_directory = "/home/larsonma/Leo-LLPs-Code/digi_keepCols"
+        base_directory = "/home/larsonma/MarkLLPCode/sim_1000"
+        output_directory = "/home/larsonma/MarkLLPCode/digi_keepCols"
 
     if args.output_directory != "/local/d1/mu+mu-/digi":
         output_directory = args.output_directory
