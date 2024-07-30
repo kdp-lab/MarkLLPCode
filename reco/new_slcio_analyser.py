@@ -85,7 +85,7 @@ sampleNames = ["1000_0.05", "1000_0.1", "1000_1", "1000_10"]
 for sample in sampleNames:
     # Use glob to get the file paths
     file_pattern = f"{base_path}{sample}_reco.slcio"
-    output_root = f"{base_path}{sample}_reco.root"
+    output_root = f"{base_path}{sample}_reco_rt.root"
     print("file_pattern: ", file_pattern)
     fnames = glob.glob(file_pattern)
     print("Found %i files."%len(fnames))
@@ -98,12 +98,12 @@ for sample in sampleNames:
     # Create a new tree
     mcp_tree = ROOT.TTree("MCPs", "All MCPs")
     mcp_stau_tree = ROOT.TTree("StauMCPs", "All Stau MCPs")
-    mcp_stau_decay_products_tree = ROOT.TTree("StauDecayProducts", "All Stau Charged Decay Product MCPs")
-    track_tree = ROOT.TTree("MCPs", "All MCPs")
-    stau_track_tree = ROOT.TTree("StauTracks", "All Stau Tracks")
-    daughter_track_tree = ROOT.TTree("DaughterTracks", "All Charged Stau Decay Product Tracks")
-    fake_track_tree = ROOT.TTree("FakeTracks", "All fake tracks, w/o mcp or multiple non-duplicate MCPs")
-    hits_tree = ROOT.TTree("Hits", "Info about all tracker hits")
+    mcp_stau_decay_products_tree = ROOT.TTree("StauDecayProductsMCPs", "All Stau Charged Decay Product MCPs")
+    track_tree = ROOT.TTree("AllTracks", "All Tracks")
+    stau_track_tree = ROOT.TTree("AllStauTracks", "All Stau Tracks")
+    daughter_track_tree = ROOT.TTree("AllDecayProductTracks", "All Charged Stau Decay Product Tracks")
+    fake_track_tree = ROOT.TTree("AllFakeTracks", "All fake tracks, w/o mcp or multiple non-duplicate MCPs")
+    hits_tree = ROOT.TTree("AllHits", "Info about all tracker hits")
 
     # Create empty lists for each variable, and empty root variables to fill root file, also create branches
     mcp_pt = [] #mcp = MCParticle (truth)
@@ -175,6 +175,26 @@ for sample in sampleNames:
     mcp_stau_z0_rt = ROOT.std.vector('float')()
     mcp_stau_tree.Branch('mcp_stau_z0', mcp_stau_z0_rt)
 
+    prod_stau_vertex_r = []
+    prod_stau_vertex_r_rt = ROOT.std.vector('float')()
+    mcp_stau_tree.Branch('prod_stau_vertex_r', prod_stau_vertex_r_rt)
+
+    prod_stau_vertex_z = []
+    prod_stau_vertex_z_rt = ROOT.std.vector('float')()
+    mcp_stau_tree.Branch('prod_stau_vertex_z', prod_stau_vertex_z_rt)
+
+    prod_stau_endpoint_r = []
+    prod_stau_endpoint_r_rt = ROOT.std.vector('float')()
+    mcp_stau_tree.Branch('prod_stau_endpoint_r', prod_stau_endpoint_r_rt)
+
+    prod_stau_endpoint_z = []
+    prod_stau_endpoint_z_rt = ROOT.std.vector('float')()
+    mcp_stau_tree.Branch('prod_stau_endpoint_z', prod_stau_endpoint_z_rt)
+
+    prod_traveldist_stau = []
+    prod_traveldist_stau_rt = ROOT.std.vector('float')()
+    mcp_stau_tree.Branch('prod_traveldist_stau', prod_traveldist_stau_rt)
+
     mcp_stau_track_bool = []
     mcp_stau_track_bool_rt = ROOT.std.vector('int')()
     mcp_stau_tree.Branch('mcp_stau_track_bool', mcp_stau_track_bool_rt)
@@ -188,7 +208,7 @@ for sample in sampleNames:
 
     mcp_daughter_pt = [] #daughter_mcp = charged decay products of tau from stau
     mcp_daughter_pt_rt = ROOT.std.vector('float')()
-    mcp_stau_decay_products_tree.Branch('mcp_daughter_pt_rt', mcp_daughter_pt_rt)
+    mcp_stau_decay_products_tree.Branch('mcp_daughter_pt', mcp_daughter_pt_rt)
 
     mcp_daughter_phi = []
     mcp_daughter_phi_rt = ROOT.std.vector('float')()
@@ -228,7 +248,7 @@ for sample in sampleNames:
     track_tree.Branch('inner_nhits', inner_nhits_rt)
 
     outer_nhits = [] 
-    outer_nhits = ROOT.std.vector('int')()
+    outer_nhits_rt = ROOT.std.vector('int')()
     track_tree.Branch('outer_nhits', outer_nhits_rt)
 
     track_pt = [] #This is track pt
@@ -631,6 +651,7 @@ for sample in sampleNames:
             itrack_theta = []
             indf = []
             ichi2 = []
+            ichi2_red = []
             inhits = []
 
             # HITS
@@ -717,6 +738,11 @@ for sample in sampleNames:
             imcp_stau_phi = []
             imcp_stau_d0 = []
             imcp_stau_z0 = []
+            iprod_stau_vertex_r = []
+            iprod_stau_vertex_z = []
+            iprod_stau_endpoint_r = []
+            iprod_stau_endpoint_z = []
+            iprod_traveldist_stau = []
             imcp_stau_track_bool = []
             imcp_stau_track_reconstructable_bool = []
             imcp_two_stau_track_bool = []
@@ -740,35 +766,25 @@ for sample in sampleNames:
                 pdg = mcp.getPDG()
 
                 imcp_pt.append(mcp_tlv.Perp())
-                mcp_pt_rt.clear()
                 mcp_pt_rt.push_back(mcp_tlv.Perp())
                 imcp_eta.append(mcp_tlv.Eta())
-                mcp_eta_rt.clear()
                 mcp_eta_rt.push_back(mcp_tlv.Eta())
                 imcp_phi.append(mcp_tlv.Phi())
-                mcp_phi_rt.clear()
                 mcp_phi_rt.push_back(mcp_tlv.Phi())
                 ipdgid.append(pdg)
-                pdgid_rt.clear()
                 pdgid_rt.push_back(pdg)
                 istatus.append(mcp.getGeneratorStatus())
-                status_rt.clear()
                 status_rt.push_back(mcp.getGeneratorStatus())
                 iprod_vertex_r.append(sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2))
-                prod_vertex_r_rt.clear()
                 prod_vertex_r_rt.push_back(sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2))
                 iprod_vertex_z.append(mcp.getVertex()[2])
-                prod_vertex_z_rt.clear()
                 prod_vertex_z_rt.push_back(mcp.getVertex()[2])
                 iprod_endpoint_r.append(sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2))
-                prod_endpoint_r_rt.clear()
                 prod_endpoint_r_rt.push_back(sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2))
                 iprod_endpoint_z.append(mcp.getEndpoint()[2])
-                prod_endpoint_z_rt.clear()
                 prod_endpoint_z_rt.push_back(mcp.getEndpoint()[2])
                 travel_dist = sqrt(mcp.getEndpoint()[0]**2 + mcp.getEndpoint()[1]**2 + mcp.getEndpoint()[2]**2) - sqrt(mcp.getVertex()[0]**2 + mcp.getVertex()[1]**2 + mcp.getVertex()[2]**2)
                 iprod_traveldist.append(travel_dist)
-                prod_traveldist_rt.clear()
                 prod_traveldist_rt.push_back(travel_dist)
                 print("--------------------------------")
                 print("vertex x, y, z: ", mcp.getVertex()[0], mcp.getVertex()[1], mcp.getVertex()[2])
@@ -776,12 +792,22 @@ for sample in sampleNames:
                 
                 print("travel_dist: ", travel_dist)
                 iprod_time.append(mcp.getTime())
-                prod_time_rt.clear()
                 prod_time_rt.push_back(mcp.getTime())
                 iid.append(mcp.id())
-                id_rt.clear()
                 id_rt.push_back(mcp.id())
                 mcp_tree.Fill()
+                mcp_pt_rt.clear()
+                mcp_eta_rt.clear()
+                mcp_phi_rt.clear()
+                pdgid_rt.clear()
+                status_rt.clear()
+                prod_vertex_r_rt.clear()
+                prod_vertex_z_rt.clear()
+                prod_endpoint_r_rt.clear()
+                prod_endpoint_z_rt.clear()
+                prod_traveldist_rt.clear()
+                prod_time_rt.clear()
+                id_rt.clear()
                 print("PID, Status, pT, eta, phi: ", pdg, mcp.getGeneratorStatus(), mcp_tlv.Perp(), mcp_tlv.Eta(), mcp_tlv.Phi())
                 print("--------------------------------")
                 #print("mcp pdgid: ", mcp.getPDG())
@@ -793,14 +819,11 @@ for sample in sampleNames:
                         continue ### skip staus with decay length 0 
 
                     imcp_stau_pt.append(mcp_tlv.Perp()) 
-                    mcp_stau_pt_rt.clear()
                     mcp_stau_pt_rt.push_back(mcp_tlv.Perp())
                     imcp_stau_eta.append(mcp_tlv.Eta())
-                    mcp_stau_eta_rt.clear()
-                    mcp_stau_eta_rt.push_back(mcp_tlv.Perp())
+                    mcp_stau_eta_rt.push_back(mcp_tlv.Eta())
                     imcp_stau_phi.append(mcp_tlv.Phi())
-                    mcp_stau_phi_rt.clear()
-                    mcp_stau_phi_rt.push_back(mcp_tlv.Perp())
+                    mcp_stau_phi_rt.push_back(mcp_tlv.Phi())
                     n_mcp_stau += 1
 
                     # Get the vertex position (true vertex from mcp)
@@ -818,12 +841,9 @@ for sample in sampleNames:
                     stau_z0 = stau_vz - (stau_vz * stau_pt / sqrt(stau_px**2 + stau_py**2 + stau_pz**2))
 
                     imcp_stau_d0.append(stau_d0)
-                    mcp_stau_d0_rt.clear()
-                    mcp_stau_d0_rt.push_back(mcp_tlv.Perp())
+                    mcp_stau_d0_rt.push_back(stau_d0)
                     imcp_stau_z0.append(stau_z0)
-                    mcp_stau_z0_rt.clear()
-                    mcp_stau_z0_rt.push_back(mcp_tlv.Perp())
-                    mcp_stau_tree.Fill() ### FIXME may get appended twice when filling later
+                    mcp_stau_z0_rt.push_back(stau_z0)
 
                     #stau_reconstructable = False
                     r_vertex = sqrt(stau_vx ** 2 + stau_vy ** 2)
@@ -831,6 +851,28 @@ for sample in sampleNames:
                     print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
                     z_vertex = mcp.getVertex()[2]
                     z_endpoint = mcp.getEndpoint()[2]
+                    iprod_stau_vertex_r.append(r_vertex)
+                    prod_stau_vertex_r_rt.push_back(r_vertex)
+                    iprod_stau_vertex_z.append(z_vertex)
+                    prod_stau_vertex_z_rt.push_back(z_vertex)
+                    iprod_stau_endpoint_r.append(r_endpoint)
+                    prod_stau_endpoint_r_rt.push_back(r_endpoint)
+                    iprod_stau_endpoint_z.append(z_endpoint)
+                    prod_stau_endpoint_z_rt.push_back(z_endpoint)
+                    travel_dist_stau = sqrt(mcp.getEndpoint()[0]**2 + mcp.getEndpoint()[1]**2 + mcp.getEndpoint()[2]**2) - sqrt(mcp.getVertex()[0]**2 + mcp.getVertex()[1]**2 + mcp.getVertex()[2]**2)
+                    iprod_traveldist_stau.append(travel_dist_stau)
+                    prod_traveldist_stau_rt.push_back(travel_dist_stau)
+                    mcp_stau_tree.Fill() ### FIXME may get appended twice when filling later
+                    mcp_stau_pt_rt.clear()
+                    mcp_stau_eta_rt.clear()
+                    mcp_stau_phi_rt.clear()
+                    mcp_stau_z0_rt.clear()
+                    mcp_stau_d0_rt.clear()
+                    prod_stau_vertex_r_rt.clear()
+                    prod_stau_vertex_z_rt.clear()
+                    prod_stau_endpoint_r_rt.clear()
+                    prod_stau_endpoint_z_rt.clear()
+                    prod_traveldist_stau_rt.clear()
                     stau_reconstructable = acceptanceCutsOld(mcp)
                     if stau_reconstructable:
                         num_reconstructable_stau_tracks += 1
@@ -881,18 +923,19 @@ for sample in sampleNames:
                                 lastLayer = layer
                                 
                                 ii_staur.append(pos_r)
-                                LC_stau_hit_r.clear()
-                                LC_stau_hit_r.push_back(pos_r)
+                                LC_stau_hit_r_rt.push_back(pos_r)
                                 ii_staux.append(pos_x)
-                                LC_stau_hit_x.clear()
-                                LC_stau_hit_x.push_back(pos_x)
+                                LC_stau_hit_x_rt.push_back(pos_x)
                                 ii_stauy.append(pos_y) 
-                                LC_stau_hit_y.clear()
-                                LC_stau_hit_y.push_back(pos_y)
+                                LC_stau_hit_y_rt.push_back(pos_y)
                                 ii_stauz.append(pos_z)
+                                LC_stau_hit_z_rt.push_back(pos_z)
+                                stau_track_tree.Fill() 
+                                LC_stau_hit_r.clear()
+                                LC_stau_hit_x.clear()
+                                LC_stau_hit_y.clear()
                                 LC_stau_hit_z.clear()
-                                LC_stau_hit_z.push_back(pos_z)
-                                stau_track_tree.Fill() ### FIXME may get appended twice when filling later
+                                
                             
                             theta = np.pi/2- np.arctan(track.getTanLambda())
                             phi = track.getPhi()
@@ -921,66 +964,66 @@ for sample in sampleNames:
                                 num_matched_stau_tracks += 1
                                 imcp_two_stau_track_bool.append(two_stau_track_bool)
                                 LC_stau_pt_match.append(mcp_tlv.Perp())
-                                LC_stau_pt_match_rt.clear()
                                 LC_stau_pt_match_rt.push_back(mcp_tlv.Perp())
                                 LC_stau_track_pt.append([pt])
-                                LC_stau_track_pt.clear()
-                                LC_stau_track_pt.push_back(pt)
+                                LC_stau_track_pt_rt.push_back(pt)
                                 LC_stau_track_eta.append([eta])
-                                LC_stau_track_eta.clear()
-                                LC_stau_track_eta.push_back(eta)
+                                LC_stau_track_eta_rt.push_back(eta)
                                 LC_stau_eta_match.append(mcp_tlv.Eta())
-                                LC_stau_eta_match.clear()
-                                LC_stau_eta_match.push_back(mcp_tlv.Eta())
+                                LC_stau_eta_match_rt.push_back(mcp_tlv.Eta())
                                 LC_stau_track_theta.append([theta])
-                                LC_stau_track_theta.clear()
-                                LC_stau_track_theta.push_back(theta)
+                                LC_stau_track_theta_rt.push_back(theta)
                                 LC_stau_phi_match.append([phi])
-                                LC_stau_phi_match.clear()
-                                LC_stau_phi_match.push_back(phi)
+                                LC_stau_phi_match_rt.push_back(phi)
                                 LC_stau_ndf.append([track.getNdf()])
-                                LC_stau_ndf.clear()
-                                LC_stau_ndf.push_back(track.getNdf())
+                                LC_stau_ndf_rt.push_back(track.getNdf())
                                 LC_stau_chi2.append([track.getChi2()])
-                                LC_stau_chi2.clear()
-                                LC_stau_chi2.push_back(track.getChi2())
+                                LC_stau_chi2_rt.push_back(track.getChi2())
                                 LC_stau_d0.append([d0])
-                                LC_stau_d0.clear()
-                                LC_stau_d0.push_back(d0)
+                                LC_stau_d0_rt.push_back(d0)
                                 LC_stau_z0.append([z0])
-                                LC_stau_z0.clear()
-                                LC_stau_z0.push_back(z0)
+                                LC_stau_z0_rt.push_back(z0)
                                 LC_stau_nhits.append([nhitz])
-                                LC_stau_nhits.clear()
-                                LC_stau_nhits.push_back(nhitz)
+                                LC_stau_nhits_rt.push_back(nhitz)
                                 LC_stau_pt_res.append([ptres])
-                                LC_stau_pt_res.clear()
-                                LC_stau_pt_res.push_back(ptres)
+                                LC_stau_pt_res_rt.push_back(ptres)
                                 LC_stau_dr.append([dr])
-                                LC_stau_dr.clear()
-                                LC_stau_dr.push_back(dr)
+                                LC_stau_dr_rt.push_back(dr)
                                 LC_stau_pixel_nhits.append([LC_pixel_nhit])
-                                LC_stau_pixel_nhits.clear()
-                                LC_stau_pixel_nhits.push_back(LC_pixel_nhit)
+                                LC_stau_pixel_nhits_rt.push_back(LC_pixel_nhit)
                                 LC_stau_inner_nhits.append([LC_inner_nhit])
-                                LC_stau_inner_nhits.clear()
-                                LC_stau_inner_nhits.push_back(LC_inner_nhit)
+                                LC_stau_inner_nhits_rt.push_back(LC_inner_nhit)
                                 LC_stau_outer_nhits.append([LC_outer_nhit])
-                                LC_stau_outer_nhits.clear()
-                                LC_stau_outer_nhits.push_back(LC_outer_nhit)
-                                LC_stau_hit_r.append(ii_staur)
+                                LC_stau_outer_nhits_rt.push_back(LC_outer_nhit)
+                                LC_stau_hit_r.append(ii_staur) ### these are pushed back earlier
                                 LC_stau_hit_x.append(ii_staux)
                                 LC_stau_hit_y.append(ii_stauy)
                                 LC_stau_hit_z.append(ii_stauz)
                                 stau_track_tree.Fill()
+                                LC_stau_pt_match_rt.clear()
+                                LC_stau_track_pt_rt.clear()
+                                LC_stau_track_eta_rt.clear()
+                                LC_stau_eta_match_rt.clear()
+                                LC_stau_track_theta_rt.clear()
+                                LC_stau_phi_match_rt.clear()
+                                LC_stau_ndf_rt.clear()
+                                LC_stau_chi2_rt.clear()
+                                LC_stau_d0_rt.clear()
+                                LC_stau_z0_rt.clear()
+                                LC_stau_nhits_rt.clear()
+                                LC_stau_dr_rt.clear()
+                                LC_stau_pt_res_rt.clear()
+                                LC_stau_pixel_nhits_rt.clear()
+                                LC_stau_inner_nhits_rt.clear()
+                                LC_stau_outer_nhits_rt.clear()
 
                     imcp_stau_track_bool.append(stauHasTrack)
-                    mcp_stau_track_bool_rt.clear()
                     mcp_stau_track_bool_rt.push_back(stauHasTrack)
                     imcp_stau_track_reconstructable_bool.append(stau_reconstructable)
-                    mcp_stau_track_reconstructable_bool_rt.clear()
                     mcp_stau_track_reconstructable_bool_rt.push_back(stau_reconstructable)
                     mcp_stau_tree.Fill()
+                    mcp_stau_track_bool_rt.clear()
+                    mcp_stau_track_reconstructable_bool_rt.clear()
                     print("truth stau d0, z0, has matched track: ", stau_d0, stau_z0, stauHasTrack) ### end mcp loop 
 
 
@@ -1003,9 +1046,12 @@ for sample in sampleNames:
                             print("gen status daughter 1:", mcpDaughter.getGeneratorStatus())
                             n_charged_mcp_daughter += 1 
                             imcp_daughter_pt.append(mcp_daughter_tlv.Perp()) 
+                            mcp_daughter_pt_rt.push_back(mcp_daughter_tlv.Perp())
                             print("daughter_pt:", imcp_daughter_pt)
                             imcp_daughter_eta.append(mcp_daughter_tlv.Eta())
+                            mcp_daughter_eta_rt.push_back(mcp_daughter_tlv.Eta())
                             imcp_daughter_phi.append(mcp_daughter_tlv.Phi())
+                            mcp_daughter_phi_rt.push_back(mcp_daughter_tlv.Phi())
                             #n_charged_mcp_daughter += 1
                             # Get the vertex position
                             daughter_vx, daughter_vy, daughter_vz = mcpDaughter.getVertex()[0], mcpDaughter.getVertex()[1], mcpDaughter.getVertex()[2]
@@ -1024,7 +1070,15 @@ for sample in sampleNames:
                             daughter_z0 = daughter_vz - (daughter_vz * daughter_pt / sqrt(daughter_px**2 + daughter_py**2 + daughter_pz**2))
 
                             imcp_daughter_d0.append(daughter_d0)
+                            mcp_daughter_d0_rt.push_back(daughter_d0)
                             imcp_daughter_z0.append(daughter_z0)
+                            mcp_daughter_z0_rt.push_back(daughter_z0)
+                            mcp_stau_decay_products_tree.Fill()
+                            mcp_daughter_pt_rt.clear() ### Clear after so when filling later don't double count
+                            mcp_daughter_eta_rt.clear()
+                            mcp_daughter_phi_rt.clear()
+                            mcp_daughter_d0_rt.clear()
+                            mcp_daughter_z0_rt.clear()
 
                             print("daughter d0, z0: ", daughter_d0, daughter_z0)
 
@@ -1053,18 +1107,31 @@ for sample in sampleNames:
                                     d0 = track.getD0()
                                     z0 = track.getZ0()
                                     LC_daughter_pt_match.append(mcp_daughter_tlv.Perp())
+                                    LC_daughter_pt_match_rt.push_back(mcp_daughter_tlv.Perp())
                                     LC_daughter_track_pt.append([pt])
+                                    LC_daughter_track_pt_rt.push_back(pt)
                                     LC_daughter_track_eta.append([eta])
+                                    LC_daughter_track_eta_rt.push_back(eta)
                                     LC_daughter_eta_match.append(mcp_daughter_tlv.Eta())
+                                    LC_daughter_eta_match_rt.push_back(mcp_daughter_tlv.Eta())
                                     LC_daughter_track_theta.append([theta])
+                                    LC_daughter_track_theta_rt.push_back(theta)
                                     LC_daughter_phi_match.append([phi])
+                                    LC_daughter_phi_match_rt.push_back(phi)
                                     LC_daughter_ndf.append([track.getNdf()])
+                                    LC_daughter_ndf_rt.push_back(track.getNdf())
                                     LC_daughter_chi2.append([track.getChi2()])
+                                    LC_daughter_chi2_rt.push_back(track.getChi2())
                                     LC_daughter_d0.append([d0])
+                                    LC_daughter_d0_rt.push_back(d0)
                                     LC_daughter_z0.append([z0])
+                                    LC_daughter_z0_rt.push_back(z0)
                                     LC_daughter_nhits.append([nhitz])
+                                    LC_daughter_nhits_rt.push_back(nhitz)
                                     LC_daughter_pt_res.append([ptres])
+                                    LC_daughter_pt_res_rt.push_back(ptres)
                                     LC_daughter_dr.append([dr])
+                                    LC_daughter_dr_rt.push_back(dr)
 
                                     LC_pixel_nhit = 0
                                     LC_inner_nhit = 0
@@ -1083,13 +1150,38 @@ for sample in sampleNames:
                                         if detector == 5 or detector == 6:
                                             LC_outer_nhit += 1
                                     LC_daughter_pixel_nhits.append([LC_pixel_nhit])
+                                    LC_daughter_pixel_nhits_rt.push_back(LC_pixel_nhit)
                                     LC_daughter_inner_nhits.append([LC_inner_nhit])
+                                    LC_daughter_inner_nhits_rt.push_back(LC_inner_nhit)
                                     LC_daughter_outer_nhits.append([LC_outer_nhit])
+                                    LC_daughter_outer_nhits_rt.push_back(LC_outer_nhit)
+                                    daughter_track_tree.Fill()
+                                    LC_daughter_pt_match_rt.clear()
+                                    LC_daughter_track_pt_rt.clear()
+                                    LC_daughter_track_eta_rt.clear()
+                                    LC_daughter_eta_match_rt.clear()
+                                    LC_daughter_track_theta_rt.clear()
+                                    LC_daughter_phi_match_rt.clear()
+                                    LC_daughter_ndf_rt.clear()
+                                    LC_daughter_chi2_rt.clear()
+                                    LC_daughter_d0_rt.clear()
+                                    LC_daughter_z0_rt.clear()
+                                    LC_daughter_nhits_rt.clear()
+                                    LC_daughter_pt_res_rt.clear()
+                                    LC_daughter_dr_rt.clear()
+                                    LC_daughter_pixel_nhits_rt.clear()
+                                    LC_daughter_inner_nhits_rt.clear()
+                                    LC_daughter_outer_nhits_rt.clear()
                                     print("found matched first daughter track")
                                     print("--------------------------------")
                                     num_matched_daughter_tracks += 1
-                        imcp_daughter_track_bool.append(daughterHasTrack)
-                        imcp_daughter_track_reconstructable_bool.append(daughter_reconstructable)
+                            imcp_daughter_track_bool.append(daughterHasTrack)
+                            mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
+                            imcp_daughter_track_reconstructable_bool.append(daughter_reconstructable)
+                            mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
+                            mcp_stau_decay_products_tree.Fill()
+                            mcp_daughter_track_bool_rt.clear()
+                            mcp_daughter_track_reconstructable_bool_rt.clear()
                         
                         daughterHasTrack = False
                         daughter_reconstructable = False
@@ -1105,9 +1197,13 @@ for sample in sampleNames:
                                 print("gen status daughter 2:", mcpDaughter.getGeneratorStatus())
                                 n_charged_mcp_daughter += 1 
                                 imcp_daughter_pt.append(mcp_daughterDaughter_tlv.Perp()) 
+                                mcp_daughter_pt_rt.push_back(mcp_daughterDaughter_tlv.Perp())
                                 print("daughter_pt:", imcp_daughter_pt)
                                 imcp_daughter_eta.append(mcp_daughterDaughter_tlv.Eta())
+                                mcp_daughter_eta_rt.push_back(mcp_daughterDaughter_tlv.Eta())
                                 imcp_daughter_phi.append(mcp_daughterDaughter_tlv.Phi())
+                                mcp_daughter_phi_rt.push_back(mcp_daughterDaughter_tlv.Phi())
+                                
 
                                 #n_charged_mcp_daughter += 1
                                 # Get the vertex position
@@ -1126,7 +1222,16 @@ for sample in sampleNames:
                                 daughter_z0 = daughter_vz - (daughter_vz * daughter_pt / sqrt(daughter_px**2 + daughter_py**2 + daughter_pz**2))
 
                                 imcp_daughter_d0.append(daughter_d0)
+                                mcp_daughter_d0_rt.push_back(daughter_d0)
                                 imcp_daughter_z0.append(daughter_z0)
+                                mcp_daughter_z0_rt.push_back(daughter_z0)
+                                mcp_stau_decay_products_tree.Fill()
+                                mcp_daughter_pt_rt.clear() ### Clear after so when filling later don't double count
+                                mcp_daughter_eta_rt.clear()
+                                mcp_daughter_phi_rt.clear()
+                                mcp_daughter_d0_rt.clear()
+                                mcp_daughter_z0_rt.clear()
+
 
                                 print("daughter d0, z0: ", daughter_d0, daughter_z0)
                                 if acceptanceCutsOld(mcpDaughterDaughter):
@@ -1156,18 +1261,31 @@ for sample in sampleNames:
                                         d0 = track.getD0()
                                         z0 = track.getZ0()
                                         LC_daughter_pt_match.append(mcp_daughterDaughter_tlv.Perp())
+                                        LC_daughter_pt_match_rt.push_back(mcp_daughterDaughter_tlv.Perp())
                                         LC_daughter_track_pt.append([pt])
+                                        LC_daughter_track_pt_rt.push_back(pt)
                                         LC_daughter_track_eta.append([eta])
+                                        LC_daughter_track_eta_rt.push_back(eta)
                                         LC_daughter_eta_match.append(mcp_daughterDaughter_tlv.Eta())
+                                        LC_daughter_eta_match_rt.push_back(mcp_daughterDaughter_tlv.Eta())
                                         LC_daughter_track_theta.append([theta])
+                                        LC_daughter_track_theta_rt.push_back(theta)
                                         LC_daughter_phi_match.append([phi])
+                                        LC_daughter_phi_match_rt.push_back(phi)
                                         LC_daughter_ndf.append([track.getNdf()])
+                                        LC_daughter_ndf_rt.push_back(track.getNdf())
                                         LC_daughter_chi2.append([track.getChi2()])
+                                        LC_daughter_chi2_rt.push_back(track.getChi2())
                                         LC_daughter_d0.append([d0])
+                                        LC_daughter_d0_rt.push_back(d0)
                                         LC_daughter_z0.append([z0])
+                                        LC_daughter_z0_rt.push_back(z0)
                                         LC_daughter_nhits.append([nhitz])
+                                        LC_daughter_nhits_rt.push_back(nhitz)
                                         LC_daughter_pt_res.append([ptres])
+                                        LC_daughter_pt_res_rt.push_back(ptres)
                                         LC_daughter_dr.append([dr])
+                                        LC_daughter_dr_rt.push_back(dr)
 
                                         LC_pixel_nhit = 0
                                         LC_inner_nhit = 0
@@ -1186,14 +1304,39 @@ for sample in sampleNames:
                                             if detector == 5 or detector == 6:
                                                 LC_outer_nhit += 1
                                         LC_daughter_pixel_nhits.append([LC_pixel_nhit])
+                                        LC_daughter_pixel_nhits_rt.push_back(LC_pixel_nhit)
                                         LC_daughter_inner_nhits.append([LC_inner_nhit])
+                                        LC_daughter_inner_nhits_rt.push_back(LC_inner_nhit)
                                         LC_daughter_outer_nhits.append([LC_outer_nhit])
+                                        LC_daughter_outer_nhits_rt.push_back(LC_outer_nhit)
+                                        daughter_track_tree.Fill()
+                                        LC_daughter_pt_match_rt.clear()
+                                        LC_daughter_track_pt_rt.clear()
+                                        LC_daughter_track_eta_rt.clear()
+                                        LC_daughter_eta_match_rt.clear()
+                                        LC_daughter_track_theta_rt.clear()
+                                        LC_daughter_phi_match_rt.clear()
+                                        LC_daughter_ndf_rt.clear()
+                                        LC_daughter_chi2_rt.clear()
+                                        LC_daughter_d0_rt.clear()
+                                        LC_daughter_z0_rt.clear()
+                                        LC_daughter_nhits_rt.clear()
+                                        LC_daughter_pt_res_rt.clear()
+                                        LC_daughter_dr_rt.clear()
+                                        LC_daughter_pixel_nhits_rt.clear()
+                                        LC_daughter_inner_nhits_rt.clear()
+                                        LC_daughter_outer_nhits_rt.clear()
                                         print("found matched second daughter track")
                                         print("--------------------------------")
                                         num_matched_daughter_tracks += 1
-                        imcp_daughter_track_bool.append(daughterHasTrack)
-                        imcp_daughter_track_reconstructable_bool.append(daughter_reconstructable)        
-                ### FIXME add another recursion to account for pi0 decay products? kaon decay products? 
+                            imcp_daughter_track_bool.append(daughterHasTrack) 
+                            mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
+                            imcp_daughter_track_reconstructable_bool.append(daughter_reconstructable)       
+                            mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
+                            mcp_stau_decay_products_tree.Fill()
+                            mcp_daughter_track_bool_rt.clear()
+                            mcp_daughter_track_reconstructable_bool_rt.clear()
+                ### FIXME add another recursion to account for pi0 decay products? kaon decay products? FIX daughterHasTrack bool 
 
             if n_charged_mcp_daughter > 0:
                 mcp_daughter_pt.append(imcp_daughter_pt)
@@ -1213,6 +1356,11 @@ for sample in sampleNames:
                 mcp_stau_phi.append(imcp_stau_phi)          
                 mcp_stau_d0.append(imcp_stau_d0)
                 mcp_stau_z0.append(imcp_stau_z0)  
+                prod_stau_vertex_r.append(iprod_stau_vertex_r)
+                prod_stau_vertex_z.append(iprod_stau_vertex_z)
+                prod_stau_endpoint_r.append(iprod_stau_endpoint_r)
+                prod_stau_endpoint_r.append(iprod_stau_endpoint_z)
+                prod_traveldist_stau.append(iprod_traveldist_stau)
                 mcp_stau_track_bool.append(imcp_stau_track_bool)
                 mcp_two_stau_track_bool.append(imcp_two_stau_track_bool)
                 mcp_stau_track_reconstructable_bool.append(imcp_stau_track_reconstructable_bool)
@@ -1274,14 +1422,33 @@ for sample in sampleNames:
                     corrected_t = hit.getTime()*(1.+ROOT.TRandom3(ievt).Gaus(0., resolution)) - tof
                     
                     iix.append(pos_x)
+                    x_rt.push_back(pos_x)
                     iiy.append(pos_y)
+                    y_rt.push_back(pos_y)
                     iiz.append(pos_z)
+                    z_rt.push_back(pos_z)
                     iihit_pdg.append(hit_pdg)
+                    hit_pdgid_rt.push_back(hit_pdg)
                     iitime.append(hit.getTime())
+                    time_rt.push_back(hit.getTime())
                     iicorrected_time.append(corrected_t)
+                    corrected_time_rt.push_back(corrected_t)
                     iihit_detector.append(detector)
+                    hit_detector_rt.push_back(detector)
                     iihit_layer.append(layer)
+                    hit_layer_rt.push_back(layer)
                     iihit_side.append(side)
+                    hit_side_rt.push_back(side)
+                    hits_tree.Fill()
+                    x_rt.clear()
+                    y_rt.clear()
+                    z_rt.clear()
+                    hit_pdgid_rt.clear()
+                    time_rt.clear()
+                    corrected_time_rt.clear()
+                    hit_detector_rt.clear()
+                    hit_layer_rt.clear()
+                    hit_side_rt.clear()
                     lastLayer = layer
                 if(nLayersCrossed < 4):
                     print("track did not pass n layers / n hits cut")
@@ -1310,12 +1477,22 @@ for sample in sampleNames:
                     d0 = track.getD0()
                     z0 = track.getZ0()
                     fake_pt.append([pt])
+                    fake_pt_rt.push_back(pt)
                     fake_eta.append([eta])
+                    fake_eta_rt.push_back(eta)
                     fake_theta.append([theta])
+                    fake_theta_rt.push_back(theta)
                     fake_ndf.append([track.getNdf()])
+                    fake_ndf_rt.push_back(track.getNdf())
                     fake_chi2.append([track.getChi2()])
+                    fake_chi2_rt.push_back(track.getChi2())
+                    fake_chi2_red = track.getChi2() / float(track.getNdf())
+                    fake_chi2_reduced.append(fake_chi2_red)
+                    fake_chi2_reduced_rt.push_back(fake_chi2_red)
                     fake_d0.append([d0])
+                    fake_d0_rt.push_back(d0)
                     fake_z0.append([z0])
+                    fake_z0_rt.push_back(z0)
                     print("fake pt:", pt)
                     print("fake nhitz:", nhitz)
                     print("fake_chi2:", track.getChi2())
@@ -1339,10 +1516,24 @@ for sample in sampleNames:
                         if detector == 5 or detector == 6:
                             LC_outer_nhit += 1
                     fake_pixel_nhits.append([LC_pixel_nhit])
+                    fake_pixel_nhits_rt.push_back(LC_pixel_nhit)
                     fake_inner_nhits.append([LC_inner_nhit])
+                    fake_inner_nhits_rt.push_back(LC_inner_nhit)
                     fake_outer_nhits.append([LC_outer_nhit])
+                    fake_outer_nhits_rt.push_back(LC_outer_nhit)
+                    fake_track_tree.Fill()
+                    fake_pt_rt.clear()
+                    fake_eta_rt.clear()
+                    fake_theta_rt.clear()
+                    fake_ndf_rt.clear()
+                    fake_chi2_rt.clear()
+                    fake_chi2_reduced_rt.clear()
+                    fake_d0_rt.clear()
+                    fake_z0_rt.clear()
+                    fake_pixel_nhits_rt.clear()
+                    fake_inner_nhits_rt.clear()
+                    fake_outer_nhits_rt.clear()
                     num_fake_tracks += 1
-                ### FIXME find way to get mcp from reco. tracks (not just staus?), use 'from' relation? 
                 print("len(mcps_track):", len(track_mcps))
                 for track_mcp in track_mcps:
                     print("track mcps: ", track_mcp.getPDG())
@@ -1359,17 +1550,42 @@ for sample in sampleNames:
                 z0 = track.getZ0()
 
                 inhits.append(nhitz)
+                nhits_rt.push_back(nhitz)
                 itrack_pt.append(pt)
+                track_pt_rt.push_back(pt)
                 itrack_eta.append(eta)
+                track_eta_rt.push_back(eta)
                 itrack_theta.append(theta)
+                track_theta_rt.push_back(theta)
                 indf.append(track.getNdf())
+                ndf_rt.push_back(track.getNdf())
                 ichi2.append(track.getChi2())
+                chi2_rt.push_back(track.getChi2())
+                chi2_red_track = track.getChi2() / float(track.getNdf())
+                ichi2_red.append(chi2_red_track)
+                chi2_red_rt.push_back(chi2_red_track)
+
                 print("track reduced chi2", track.getChi2() / float(track.getNdf()))
                 # print("Reco pt, eta, phi, nhits, dr:", pt, eta, phi, nhitz, dr)
 
                 pixel_nhits.append([pixel_nhit])
+                pixel_nhits_rt.push_back(pixel_nhit)
                 inner_nhits.append([inner_nhit])
+                inner_nhits_rt.push_back(inner_nhit)
                 outer_nhits.append([outer_nhit])
+                outer_nhits_rt.push_back(outer_nhit)
+                track_tree.Fill()
+                nhits_rt.clear()
+                track_pt_rt.clear()
+                track_eta_rt.clear()
+                track_theta_rt.clear()
+                ndf_rt.clear()
+                chi2_rt.clear()
+                chi2_red_rt.clear()
+                pixel_nhits_rt.clear()
+                inner_nhits_rt.clear()
+                outer_nhits_rt.clear()
+
                 ix.append(iix)
                 iy.append(iiy)
                 iz.append(iiz)
@@ -1391,6 +1607,7 @@ for sample in sampleNames:
             track_theta.append(itrack_theta)
             ndf.append(indf)
             chi2.append(ichi2)
+            chi2_red.append(ichi2_red)
             x.append(ix)
             y.append(iy)
             z.append(iz)
@@ -1405,6 +1622,10 @@ for sample in sampleNames:
             mcp_phi.append(imcp_phi)
             pdgid.append(ipdgid)
             status.append(istatus)
+            prod_vertex_r.append(iprod_vertex_r)
+            prod_vertex_z.append(iprod_vertex_z)
+            prod_endpoint_r.append(iprod_endpoint_r)
+            prod_endpoint_z.append(iprod_endpoint_z)
             prod_time.append(iprod_time)
             id.append(iid)
 
@@ -1463,8 +1684,10 @@ for sample in sampleNames:
         data_list["mcp_phi"] = mcp_phi
         data_list["pdgid"] = pdgid
         data_list["status"] = status
-        data_list["prod_vertex"] = prod_vertex
-        data_list["prod_endpoint"] = prod_endpoint
+        data_list["prod_vertex_r"] = prod_vertex_r
+        data_list["prod_vertex_z"] = prod_vertex_z
+        data_list["prod_endpoint_r"] = prod_endpoint_r
+        data_list["prod_endpoint_z"] = prod_endpoint_z
         data_list["prod_time"] = prod_time
         data_list["id"] = id
 
@@ -1537,19 +1760,21 @@ for sample in sampleNames:
         data_list["track_theta"] = track_theta
         data_list["ndf"] = ndf
         data_list["chi2"] = chi2
+        data_list["chi2_red"] = chi2_red
 
         ### For fake tracks
-        data_list["fake_pt"] = fake_theta
+        data_list["fake_pt"] = fake_pt
         data_list["fake_theta"] = fake_theta
-        data_list["fake_eta"] = fake_theta
-        data_list["fake_phi"] = fake_theta
-        data_list["fake_d0"] = fake_theta
-        data_list["fake_z0"] = fake_theta
-        data_list["fake_ndf"] = fake_theta
-        data_list["fake_chi2"] = fake_theta
-        data_list["fake_pixel_nhits"] = fake_theta
-        data_list["fake_inner_nhits"] = fake_theta
-        data_list["fake_outer_nhits"] = fake_theta
+        data_list["fake_eta"] = fake_eta
+        data_list["fake_phi"] = fake_phi
+        data_list["fake_d0"] = fake_d0
+        data_list["fake_z0"] = fake_z0
+        data_list["fake_ndf"] = fake_ndf
+        data_list["fake_chi2"] = fake_chi2
+        data_list["fake_chi2_red"] = fake_chi2_red
+        data_list["fake_pixel_nhits"] = fake_pixel_nhits
+        data_list["fake_inner_nhits"] = fake_inner_nhits
+        data_list["fake_outer_nhits"] = fake_outer_nhits
 
         ### FOR HITS
         data_list["x"] = x
