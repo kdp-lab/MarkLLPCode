@@ -33,8 +33,8 @@ def run_marlin(input_file, bib, reco, output_directory):
         "Marlin",
         steering_file,
         "--global.LCIOInputFiles="+input_file,
-        "--CKFTracking.MatFile="+os.getenv("ACTS_PATH")+"/share/ACTSTracking/data/material-maps.json", ### NOTE: for reco only
-        "--CKFTracking.TGeoFile="+os.getenv("ACTS_PATH")+"/share/ACTSTracking/data/MuColl_v1.root",
+        #"--CKFTracking.MatFile="+os.getenv("ACTS_PATH")+"/share/ACTSTracking/data/material-maps.json", ### NOTE: for reco only
+        #"--CKFTracking.TGeoFile="+os.getenv("ACTS_PATH")+"/share/ACTSTracking/data/MuColl_v1.root",
         "--DD4hep.DD4hepXMLFile="+os.getenv("MUCOLL_GEO"),
         "--LCIOWriter_all.LCIOOutputFile="+output_file_all,
         "--LCIOWriter_light.LCIOOutputFile="+output_file_light,
@@ -60,11 +60,11 @@ if __name__ == "__main__":
         base_directory = "/local/d1/mu+mu-/digi_bib"
         output_directory = "/local/d1/mu+mu-/reco_bib"
     elif args.reco:
-        base_directory = "/home/larsonma/MarkLLPCode/digi_keepCols"
-        output_directory = "/home/larsonma/MarkLLPCode/reco"
+        base_directory = "/local/d1/mu+mu-/digi_v3/timingchange_32ns64ns"
+        output_directory = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns"
     else:
-        base_directory = "/home/larsonma/MarkLLPCode/sim_1000"
-        output_directory = "/home/larsonma/MarkLLPCode/digi_keepCols"
+        base_directory = "/local/d1/mu+mu-/sim_v3"
+        output_directory = "/local/d1/mu+mu-/digi_v3/timingchange_32ns64ns"
 
     if args.output_directory != "/local/d1/mu+mu-/digi":
         output_directory = args.output_directory
