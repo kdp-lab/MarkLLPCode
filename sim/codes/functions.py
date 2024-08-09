@@ -28,7 +28,9 @@ def generate_modified_tbl(mass, lifetime, width):
     
     # Check if the output directory exists
     output_dir = os.path.dirname(output_tbl_file)
+    print("output dir:", output_dir)
     if not os.path.exists(output_dir):
+        print("path does not exist")
         os.makedirs(output_dir)  # Create directory if it doesn't exist
 
     # Check if the output file exists
@@ -94,7 +96,7 @@ def run_ddsim(input_file, output_directory, tbl_file, number_of_events):
     command = [
         "ddsim",
         "--steeringFile",
-        "/local/d1/lrozanov/mucoll-tutorial-2023/mucoll-benchmarks/simulation/ilcsoft/steer_baseline.py",
+        "/home/larsonma/MarkLLPCode/mucoll-benchmarks/simulation/ilcsoft/steer_baseline.py",
         "--inputFile",
         input_file,
         "--physics.pdgfile",

@@ -5,19 +5,22 @@ import os
 from codes import functions
 
 def process_input_file(input_file, output_directory, number_of_events):
+    print("call extract_params")
     # Extract mass, width, and lifetime from the input file
     mass, width, lifetime = functions.extract_params(input_file)
     # Generate modified .tbl file
+    print("call generate_modified_tbl")
     tbl_file = functions.generate_modified_tbl(mass, lifetime, width)
     # Run DDSIM simulation
+    print("call run_ddsim")
     functions.run_ddsim(input_file, output_directory, tbl_file, number_of_events)
 
 if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run multiple DDSIM simulations simultaneously.")
     parser.add_argument("input_files", nargs="+", help="List of input files for simulations.")
-    parser.add_argument("-n", "--number_of_events", help="Number of events to simulate.", type=int, default=-1)
-    parser.add_argument("-o", "--output_directory", help="Output directory for simulation results.", default="/local/d1/mu+mu-/sim")
+    parser.add_argument("-n", "--number_of_events", help="Number of events to simulate.", type=int, default=1000)
+    parser.add_argument("-o", "--output_directory", help="Output directory for simulation results.", default="/local/d1/mu+mu-/sim_v3")
     parser.add_argument("-j", "--ncpu", help="Number of CPU cores to use.", type=int, default=1)
     args = parser.parse_args()
     
