@@ -22,16 +22,4 @@ cmake ../
 make
 export MARLIN_DLL=$(realpath lib/libMyBIBUtils.so):${MARLIN_DLL}
 ```
-To incorporate TrackSelector code from https://github.com/madbaron/MarlinTrkProcessors/tree/selector_updates to use displaced tracking config (note: need to be sourced to cvmfs to compile): 
 
-```bash
-
-git clone git@github.com:madbaron/MarlinTrkProcessors.git
-git checkout selector_updates
-cd MarlinTrkProcessors
-mkdir build
-cd build
-cmake ../
-make
-export MARLIN_DLL=$(realpath lib/libMarlinTrkProcessors.so):${MARLIN_DLL}
-```
