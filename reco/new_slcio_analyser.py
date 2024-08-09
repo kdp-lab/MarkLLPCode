@@ -152,7 +152,6 @@ for sample in sampleNames:
     id_rt = ROOT.std.vector('int')()
     mcp_tree.Branch('id', id_rt)
 
-
     mcp_stau_pt = [] #mcp_stau = MCParticle stau
     mcp_stau_pt_rt = ROOT.std.vector('float')()
     mcp_stau_tree.Branch('mcp_stau_pt', mcp_stau_pt_rt)
@@ -391,6 +390,10 @@ for sample in sampleNames:
     LC_daughter_track_eta = []
     LC_daughter_track_eta_rt = ROOT.std.vector('float')()
     daughter_track_tree.Branch('LC_daughter_track_eta', LC_daughter_track_eta_rt)
+
+    LC_daughter_track_phi = []
+    LC_daughter_track_phi_rt = ROOT.std.vector('float')()
+    daughter_track_tree.Branch('LC_daughter_track_phi', LC_daughter_track_phi_rt)
 
     LC_daughter_eta_match = []
     LC_daughter_eta_match_rt = ROOT.std.vector('float')()
@@ -1075,12 +1078,12 @@ for sample in sampleNames:
                             #print("gen status daughter 1:", mcpDaughter.getGeneratorStatus())
                             n_charged_mcp_daughter += 1 
                             imcp_daughter_pt.append(mcp_daughter_tlv.Perp()) 
-                            mcp_daughter_pt_rt.push_back(mcp_daughter_tlv.Perp())
+                            #mcp_daughter_pt_rt.push_back(mcp_daughter_tlv.Perp())
                             #print("daughter_pt:", imcp_daughter_pt)
                             imcp_daughter_eta.append(mcp_daughter_tlv.Eta())
-                            mcp_daughter_eta_rt.push_back(mcp_daughter_tlv.Eta())
+                            #mcp_daughter_eta_rt.push_back(mcp_daughter_tlv.Eta())
                             imcp_daughter_phi.append(mcp_daughter_tlv.Phi())
-                            mcp_daughter_phi_rt.push_back(mcp_daughter_tlv.Phi())
+                            #mcp_daughter_phi_rt.push_back(mcp_daughter_tlv.Phi())
                             #n_charged_mcp_daughter += 1
                             # Get the vertex position
                             daughter_vx, daughter_vy, daughter_vz = mcpDaughter.getVertex()[0], mcpDaughter.getVertex()[1], mcpDaughter.getVertex()[2]
@@ -1104,21 +1107,21 @@ for sample in sampleNames:
                             z_endpoint = mcpDaughter.getEndpoint()[2]
 
                             imcp_daughter_d0.append(daughter_d0)
-                            mcp_daughter_d0_rt.push_back(daughter_d0)
+                            #mcp_daughter_d0_rt.push_back(daughter_d0)
                             imcp_daughter_z0.append(daughter_z0)
-                            mcp_daughter_z0_rt.push_back(daughter_z0)
+                            #mcp_daughter_z0_rt.push_back(daughter_z0)
 
-                            mcp_daughter_r_vertex_rt.push_back(r_vertex)
-                            mcp_daughter_r_endpoint_rt.push_back(r_endpoint)
-                            mcp_daughter_z_vertex_rt.push_back(z_vertex)
-                            mcp_daughter_z_endpoint_rt.push_back(z_endpoint)
+                            #mcp_daughter_r_vertex_rt.push_back(r_vertex)
+                            #mcp_daughter_r_endpoint_rt.push_back(r_endpoint)
+                            #mcp_daughter_z_vertex_rt.push_back(z_vertex)
+                            #mcp_daughter_z_endpoint_rt.push_back(z_endpoint)
 
                             #print("daughter d0, z0: ", daughter_d0, daughter_z0)
 
                             if acceptanceCutsDisplaced(mcpDaughter):
                                 daughter_reconstructable = True
                                 #print("recoable daughter 1")
-                                n_recoable_daughter += 1
+                                #n_recoable_daughter += 1
                                 
                                 ### Perform truth association to tracks (Note: likely won't work without additional seeding layers / loosening nhits)
                                 tracks = lcRelation.getRelatedToObjects(mcpDaughter)
@@ -1159,6 +1162,7 @@ for sample in sampleNames:
                                     ptres = abs(mcp_daughter_tlv.Perp() - pt) / (mcp_daughter_tlv.Perp())
                                     d0 = track.getD0()
                                     z0 = track.getZ0()
+                                    """
                                     LC_daughter_pt_match.append(mcp_daughter_tlv.Perp())
                                     LC_daughter_pt_match_rt.push_back(mcp_daughter_tlv.Perp())
                                     LC_daughter_track_pt.append([pt])
@@ -1199,13 +1203,14 @@ for sample in sampleNames:
                                     LC_daughter_inner_nhits_rt.push_back(LC_inner_nhit)
                                     LC_daughter_outer_nhits.append([LC_outer_nhit])
                                     LC_daughter_outer_nhits_rt.push_back(LC_outer_nhit)
+                                    """
                                     #print("found matched first daughter track")
                                     #print("--------------------------------")
                                     num_matched_daughter_tracks += 1
                             imcp_daughter_track_bool.append(daughterHasTrack)
-                            mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
+                            #mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
                             imcp_daughter_track_reconstructable_bool.append(daughter_reconstructable)
-                            mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
+                           # mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
                         
                         daughterHasTrack = False
                         daughter_reconstructable = False
@@ -1313,12 +1318,13 @@ for sample in sampleNames:
                                         LC_daughter_track_pt_rt.push_back(pt)
                                         LC_daughter_track_eta.append([eta])
                                         LC_daughter_track_eta_rt.push_back(eta)
+                                        LC_daughter_track_phi_rt.push_back(phi)
                                         LC_daughter_eta_match.append(mcp_daughterDaughter_tlv.Eta())
                                         LC_daughter_eta_match_rt.push_back(mcp_daughterDaughter_tlv.Eta())
                                         LC_daughter_track_theta.append([theta])
                                         LC_daughter_track_theta_rt.push_back(theta)
-                                        LC_daughter_phi_match.append([phi])
-                                        LC_daughter_phi_match_rt.push_back(phi)
+                                        LC_daughter_phi_match.append([mcp_daughterDaughter_tlv.Phi()])
+                                        LC_daughter_phi_match_rt.push_back(mcp_daughterDaughter_tlv.Phi())
                                         LC_daughter_ndf.append([track.getNdf()])
                                         LC_daughter_ndf_rt.push_back(track.getNdf())
                                         LC_daughter_chi2.append([track.getChi2()])
@@ -1424,6 +1430,7 @@ for sample in sampleNames:
             LC_daughter_pt_match_rt.clear()
             LC_daughter_track_pt_rt.clear()
             LC_daughter_track_eta_rt.clear()
+            LC_daughter_track_phi_rt.clear()
             LC_daughter_eta_match_rt.clear()
             LC_daughter_track_theta_rt.clear()
             LC_daughter_phi_match_rt.clear()

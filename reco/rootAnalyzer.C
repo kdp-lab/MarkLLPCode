@@ -633,31 +633,31 @@ const TString fileName
     // ----------------------------------------------------------------------------------------------------------------
     // Declare histograms to be written to and plotted
 
-    TH1F* stau_mcp_pt = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 100.0 GeV", 10, 2000.0, 5000.0);
+    TH1F* stau_mcp_pt = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
     TH1F* stau_mcp_eta = new TH1F("stau_mcp_eta", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1", 25, -2.5, 2.5);
-    TH1F* stau_mcp_phi = new TH1F("stau_mcp_phi", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1 radians", 32, -3.2, -3.2);
+    TH1F* stau_mcp_phi = new TH1F("stau_mcp_phi", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1 radians", 16, -3.2, -3.2);
     TH1F* stau_mcp_d0 = new TH1F("stau_mcp_d0", ";Monte Carlo Stau d_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
     TH1F* stau_mcp_z0 = new TH1F("stau_mcp_z0", ";Monte Carlo Stau z_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
 
-    TH1F* stau_tp_pt = new TH1F("stau_tp_pt", ";Tracking Particle Stau p_{T} [GeV]; Tracking particles / 300.0 GeV", 10, 2000.0, 5000.0);
+    TH1F* stau_tp_pt = new TH1F("stau_tp_pt", ";Tracking Particle Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
     TH1F* stau_tp_eta = new TH1F("stau_tp_eta", ";Tracking Particle Stau Eta; Tracking particle / 0.2", 25, -2.5, 2.5);
-    TH1F* stau_tp_phi = new TH1F("stau_tp_phi", ";Tracking Particle Stau Phi; Tracking particle / 0.2 radians", 32, -3.2, -3.2);
+    TH1F* stau_tp_phi = new TH1F("stau_tp_phi", ";Tracking Particle Stau Phi; Tracking particle / 0.2 radians", 16, -3.2, -3.2);
     TH1F* stau_tp_d0 = new TH1F("stau_tp_d0", ";Tracking Particle Stau d_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
     TH1F* stau_tp_z0 = new TH1F("stau_tp_z0", ";Tracking Particle Stau z_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
 
     TH1F* displaced_mcp_pt = new TH1F("displaced_mcp_pt", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
     TH1F* displaced_mcp_eta = new TH1F("displaced_mcp_eta", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2", 25, -2.5, 2.5);
-    TH1F* displaced_mcp_phi = new TH1F("displaced_mcp_phi", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2 radians", 32, -3.2, -3.2);
+    TH1F* displaced_mcp_phi = new TH1F("displaced_mcp_phi", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2 radians", 16, -3.2, -3.2);
     TH1F* displaced_mcp_d0 = new TH1F("displaced_mcp_d0", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 25 mm", 20, -250.0, 250.0);
     TH1F* displaced_mcp_z0 = new TH1F("displaced_mcp_z0", ";Monte Carlo Stau Decay Product z_{0}; Monte Carlo Stau / 25 mm", 20, -250.0, 250.0);
 
     TH1F* displaced_tp_pt = new TH1F("displaced_tp_pt", ";Displaced Tracking particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
     TH1F* displaced_tp_eta = new TH1F("displaced_tp_eta", ";Displaced Tracking Particle #eta; Displaced tracking particle / 0.2", 25, -2.5, 2.5);
-    TH1F* displaced_tp_phi = new TH1F("displaced_tp_phi", ";Displaced Tracking Particle Phi; Displaced tracking particle / 0.2 radians", 32, -3.2, -3.2);
+    TH1F* displaced_tp_phi = new TH1F("displaced_tp_phi", ";Displaced Tracking Particle Phi; Displaced tracking particle / 0.2 radians", 16, -3.2, -3.2);
     TH1F* displaced_tp_d0 = new TH1F("displaced_tp_d0", ";Displaced Tracking Tracking Particle d_{0}; Tracking Particle Stau / 25 mm", 20, -250.0, 250.0);
     TH1F* displaced_tp_z0 = new TH1F("displaced_tp_z0", ";Displaced Tracking Tracking Particle z_{0}; Tracking Particle Stau / 25 mm", 20, -250.0, 250.0);
 
-    TH1F* stau_matched_pt = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 300.0 GeV", 10, 2000.0, 5000.0);
+    TH1F* stau_matched_pt = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
     TH1F* stau_matched_pt_all = new TH1F("stau_matched_pt_all", ";Tracking particle p_{T} [GeV]; Tracking particles (all) / 100.0 GeV", 30, 2000.0, 5000.0);
     TH1F* displaced_matched_pt = new TH1F("displaced_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
     TH1F* stau_track_pt = new TH1F("stau_track_pt", ";Stau Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 5000.0);
@@ -668,6 +668,8 @@ const TString fileName
     TH1F* displaced_matched_eta = new TH1F("displaced_matched_eta", ";Tracking Particle #eta; Tracking particle / 0.2", 25, -2.5, 2.5);
     TH1F* stau_track_eta = new TH1F("stau_track_eta", ";Stau Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
     TH1F* displaced_track_eta = new TH1F("displaced_track_eta", ";Displaced Stau Decay Product Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
+
+    TH1F* displaced_matched_phi = new TH1F("displaced_matched_phi", ";Tracking Particle #phi; Tracking particle / 0.4 radians", 16, -3.2, 3.2);
 
     TH1F* displaced_track_d0 = new TH1F("displaced_track_d0", ";Displaced Stau Decay Product Track d_{0}; Tracking particles / 25 mm", 100, -250.0, 250.0);
     TH1F* displaced_track_z0 = new TH1F("displaced_track_z0", ";Displaced Stau Decay Product Track z_{0}; Tracking particles / 25 mm", 100, -250.0, 250.0);
@@ -680,7 +682,7 @@ const TString fileName
     TH1F* displaced_resd0 = new TH1F("displaced_resd0", ";Displaced Track d_{0} - Matched d_{0}; Tracks / 1 mm", 20, -10, 10);
 
     TH1F* displaced_PtRel = new TH1F("displaced_PtRel", ";|((Displaced Track p_{T} - Matched p_{T}) / Matched p_{T})|; Tracks / 0.1", 20, 0, 2);
-    TH1F* PtRelvsPt = new TH1F("PtRelvsPt", ";Tracking particle p_{T} [GeV];p_{T} resolution [GeV] ", 10, 0, 5000.0);
+    TH1F* PtRelvsPt = new TH1F("PtRelvsPt", ";Tracking particle p_{T} [GeV];p_{T} resolution ", 10, 0, 5000.0);
 
     TH1F* stau_chi2_reduced = new TH1F("stau_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
     TH1F* displaced_chi2_reduced = new TH1F("displaced_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
@@ -752,7 +754,6 @@ const TString fileName
       
       
       /// PROCESS STAUS FIRST
-      std::cout << "Event:  " << iEvt << " nstaus: " << mcp_stau_pt->size() << "\n";
       for (unsigned int iStau = 0; iStau < mcp_stau_pt->size(); ++iStau){ // Loop through staus in event, will either be 2, 4, or 6
         trueReconstructable.push_back(mcp_stau_track_reconstructable_bool->at(iStau)); // only first two indices will be used for efficiency
         trueHasTrack.push_back(mcp_stau_track_bool->at(iStau));
@@ -822,13 +823,11 @@ const TString fileName
       for (unsigned int iStauTrack = 0; iStauTrack < LC_stau_pt_match->size(); ++iStauTrack){ 
 
         // Use std::find to check if the value exists in the vector
-        std::cout << "LC_stau_pt_match->at(iStauTrack): " << LC_stau_eta_match->at(iStauTrack) << " at: " << iStauTrack << "\n";
         if (isApproximatelyEqualToAny(previousEtas, LC_stau_eta_match->at(iStauTrack), 0.001)) { // FIXME do this with parent / daughter mcp relations later!! 
-          std::cout << "Value " << LC_stau_eta_match->at(iStauTrack) << " exists in the vector." << std::endl;
+          //std::cout << "Value " << LC_stau_eta_match->at(iStauTrack) << " exists in the vector." << std::endl;
         }
         else{
           numMatchedStauTracks++;
-          std::cout << "not duplicate stau track" << "\n";
           stau_matched_pt->Fill(LC_stau_pt_match->at(iStauTrack));
           stau_matched_eta->Fill(LC_stau_eta_match->at(iStauTrack));
         }
@@ -852,8 +851,6 @@ const TString fileName
       /// PROCESS STAU DECAY PRODUCTS
 
       for (unsigned int iDP = 0; iDP < mcp_daughter_pt->size(); ++iDP){ // Loop through staus in event, will either be 2, 4, or 6
-        std::cout << "mcp_daughter_r_vertex->Size(): " << mcp_daughter_r_vertex->size() << "\n";
-        std::cout << "test 1" << "\n";
         displaced_mcp_pt->Fill(mcp_daughter_pt->at(iDP));
         displaced_mcp_eta->Fill(mcp_daughter_eta->at(iDP));
         displaced_mcp_phi->Fill(mcp_daughter_phi->at(iDP));
@@ -868,9 +865,7 @@ const TString fileName
           displaced_tp_d0->Fill(mcp_daughter_d0->at(iDP));
           displaced_tp_z0->Fill(mcp_daughter_z0->at(iDP));
         }
-        std::cout << "test 1.1" << "\n";
         if(fileName == "1000_0.1_reco"){ // fixme use to fill specific histograms
-          std::cout << "test 1.15" << "\n";
           if(mcp_daughter_track_reconstructable_bool->at(iDP)){
             displaced_tp_pt_1_01_->Fill(mcp_daughter_pt->at(iDP));
             displaced_tp_d0_1_01_->Fill(mcp_daughter_r_vertex->at(iDP));
@@ -880,7 +875,6 @@ const TString fileName
         }
         
         else if(fileName == "1000_1_reco"){
-          std::cout << "test 1.2" << "\n";
           if(mcp_daughter_track_reconstructable_bool->at(iDP)){
             displaced_tp_pt_1_1_->Fill(mcp_daughter_pt->at(iDP));
             displaced_tp_d0_1_1_->Fill(mcp_daughter_r_vertex->at(iDP));
@@ -890,7 +884,6 @@ const TString fileName
         }
         
         else if(fileName == "4500_0.1_reco"){
-          std::cout << "test 1.3" << "\n";
           if(mcp_daughter_track_reconstructable_bool->at(iDP)){
             displaced_tp_pt_45_01_->Fill(mcp_daughter_pt->at(iDP));
             displaced_tp_d0_45_01_->Fill(mcp_daughter_r_vertex->at(iDP));
@@ -915,6 +908,7 @@ const TString fileName
         displaced_matched_eta->Fill(LC_daughter_eta_match->at(iDPTrack));
         displaced_matched_d0->Fill(LC_daughter_d0_match->at(iDPTrack));
         displaced_matched_z0->Fill(LC_daughter_z0_match->at(iDPTrack));
+        displaced_matched_phi->Fill(LC_daughter_phi_match->at(iDPTrack));
         
         displaced_track_pt->Fill(LC_daughter_track_pt->at(iDPTrack));
         displaced_track_eta->Fill(LC_daughter_track_eta->at(iDPTrack)); // fixme fill other track properties
@@ -933,9 +927,8 @@ const TString fileName
         displaced_chi2_reduced->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
 
         displaced_nhits->Fill(LC_daughter_nhits->at(iDPTrack));
-        std::cout << "test 2" << "\n";
 
-        if(fileName == "1000_0.1_reco"){ // fixme use to fill specific histograms
+        if(fileName == "1000_0.1_reco"){ 
           displaced_track_pt_1_01_->Fill(LC_daughter_track_pt->at(iDPTrack));
           displaced_track_d0_1_01_->Fill(LC_daughter_d0->at(iDPTrack));
           displaced_chi2_reduced_1_01_->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
@@ -970,7 +963,6 @@ const TString fileName
       }
 
       for (unsigned int iFakeTrk = 0; iFakeTrk < fake_pt->size(); ++iFakeTrk){ // Fill fake track properties
-        std::cout << "fake_pt->size(): " << fake_pt->size() << " andiFakeTrk : " << iFakeTrk << "\n";
         fake_track_pt->Fill(fake_pt->at(iFakeTrk));
         fake_track_eta->Fill(fake_eta->at(iFakeTrk));
         fake_track_d0->Fill(fake_d0->at(iFakeTrk));
@@ -982,12 +974,21 @@ const TString fileName
   } // OUTSIDE EVENT LOOP
 
   for (int bin = 0; bin < nPtBins; ++bin){
-    std::cout << "computeMean(ptResByBin[bin]): " << computeMean(ptResByBin[bin]) << "\n";
     PtRelvsPt->SetBinContent(bin, computeMean(ptResByBin[bin]));
     PtRelvsPt->SetBinError(bin, computeStandardError(ptResByBin[bin], computeStandardDeviation(ptResByBin[bin], computeMean(ptResByBin[bin]))));
   }
 
   /// Draw and save histograms
+  stau_mcp_pt->Draw();
+  c.SaveAs(DIR + "stau_mcp_pt.pdf");
+  stau_mcp_eta->Draw();
+  c.SaveAs(DIR + "stau_mcp_eta.pdf");
+  stau_mcp_phi->Draw();
+  c.SaveAs(DIR + "stau_mcp_phi.pdf");
+  stau_mcp_d0->Draw();
+  c.SaveAs(DIR + "stau_mcp_d0.pdf");
+  stau_mcp_z0->Draw();
+  c.SaveAs(DIR + "stau_mcp_z0.pdf");
   stau_matched_pt->Draw();
   c.SaveAs(DIR + "stau_matched_pt.pdf");
   stau_matched_eta->Draw();
@@ -1012,6 +1013,8 @@ const TString fileName
   c.SaveAs(DIR + "displaced_matched_d0.pdf");
   displaced_matched_z0->Draw();
   c.SaveAs(DIR + "displaced_matched_z0.pdf");
+  displaced_matched_phi->Draw();
+  c.SaveAs(DIR + "displaced_matched_phi.pdf");
   displaced_track_d0->Draw();
   c.SaveAs(DIR + "displaced_track_d0.pdf");
   displaced_track_z0->Draw();
@@ -1202,6 +1205,30 @@ const TString fileName
   displaced_eff_z0->Draw();
   c.SaveAs(DIR + "displaced_eff_z0.pdf");
 
+  displaced_matched_phi->Sumw2();
+  displaced_tp_phi->Sumw2();
+  TH1F* displaced_eff_acc_phi = (TH1F*)displaced_matched_phi->Clone();
+  displaced_eff_acc_phi->SetName("eff_eta");
+  displaced_eff_acc_phi->GetYaxis()->SetTitle("Efficiency");
+  displaced_eff_acc_phi->Divide(displaced_matched_phi, displaced_tp_phi, 1.0, 1.0, "B");
+  
+  displaced_eff_acc_phi->SetAxisRange(0, 1.1, "Y");
+
+  displaced_eff_acc_phi->Draw();
+  c.SaveAs(DIR + "displaced_eff_acc_phi.pdf");
+
+  displaced_matched_phi->Sumw2();
+  displaced_mcp_phi->Sumw2();
+  TH1F* displaced_eff_phi = (TH1F*)displaced_matched_phi->Clone();
+  displaced_eff_phi->SetName("eff_eta");
+  displaced_eff_phi->GetYaxis()->SetTitle("Efficiency");
+  displaced_eff_phi->Divide(displaced_matched_phi, displaced_mcp_phi, 1.0, 1.0, "B");
+  
+  displaced_eff_phi->SetAxisRange(0, 1.1, "Y");
+
+  displaced_eff_phi->Draw();
+  c.SaveAs(DIR + "displaced_eff_phi.pdf");
+
   
   // Create a canvas to draw the histograms
   TCanvas *c_over = new TCanvas("c", "Overlay Histograms", 800, 600);
@@ -1222,6 +1249,22 @@ const TString fileName
 
   // Save the canvas as a PDF
   c_over->SaveAs(DIR + "displaced_eff_total_acc_pt.pdf");
+
+  // Draw the first histogram
+  displaced_eff_acc_phi->SetLineColor(kRed); // Set color for better distinction
+  displaced_eff_acc_phi->Draw();
+
+  // Draw the second histogram on the same canvas
+  displaced_eff_phi->SetLineColor(kBlue); // Set a different color
+  displaced_eff_phi->Draw("SAME"); // "SAME" option overlays it on the existing canvas
+
+  // Add a legend to distinguish between the histograms
+  legend->AddEntry(displaced_eff_acc_phi, "Eff. w/ Acceptance", "l");
+  legend->AddEntry(displaced_eff_phi, "Total Eff. ", "l");
+  legend->Draw();
+
+  // Save the canvas as a PDF
+  c_over->SaveAs(DIR + "displaced_eff_total_acc_phi.pdf");
 
   // Draw the first histogram
   displaced_eff_acc_eta->SetLineColor(kRed); // Set color for better distinction
