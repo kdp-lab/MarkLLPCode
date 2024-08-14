@@ -56,8 +56,8 @@ def acceptanceCutsDisplaced(mcp):
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
 base_path = "/home/larsonma/MarkLLPCode/reco/"
 input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
-#sampleNames = ["1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
-sampleNames = ["1000_0.1"]
+sampleNames = ["1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
+#sampleNames = ["1000_0.1"]
 # Loop over sample names to construct file paths
 for sample in sampleNames:
     # Use glob to get the file paths
@@ -599,22 +599,17 @@ for sample in sampleNames:
                                     decoder.setValue(cellID)
                                     detector = decoder["system"].value()
                                     layer = decoder['layer'].value()
-                                    print("layer:", layer)
-                                    print("detector:", detector)
                                     if (lastLayer != layer):
                                         if (detector <= 2): # if vdx
                                             nLayersCrossed += 0.5
-                                        #if (detector == 1 or detector == 2):
-
-                                        print("increment nlayerscrossed")
                                         nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
-                                    #print("hit layer: ", layer)
+
                                     position = hit.getPosition()
                                     pos_x = position[0]
                                     pos_y = position[1]
                                     pos_z = position[2]
                                     pos_r = sqrt(pos_x ** 2 + pos_y ** 2)
-                                    #print("stau pos_x, pos_y, pos_r, pos_z:", pos_x, pos_y, pos_r, pos_z)
+
                                     if detector == 1 or detector == 2:
                                         LC_pixel_nhit += 1
                                     if detector == 3 or detector == 4:
@@ -710,84 +705,20 @@ for sample in sampleNames:
                                     #print("gen status daughter 2:", mcpDaughter.getGeneratorStatus())
                                     n_charged_mcp_daughter += 1 
                                     mcp_daughter_pt_rt.push_back(mcp_daughterDaughter_tlv.Perp())
-                                    #print("daughter_pt:", imcp_daughter_pt)
                                     mcp_daughter_eta_rt.push_back(mcp_daughterDaughter_tlv.Eta())
                                     mcp_daughter_phi_rt.push_back(mcp_daughterDaughter_tlv.Phi())
                                     
-                                    """
-                                    #n_charged_mcp_daughter += 1
-                                    # Get the vertex position
-                                    daughter_vx, daughter_vy, daughter_vz = mcpDaughterDaughter.getVertex()[0], mcpDaughterDaughter.getVertex()[1], mcpDaughterDaughter.getVertex()[2]
-
-                                    daughter_ex, daughter_ey, daughter_ez = mcpDaughterDaughter.getEndpoint()[0] - mcpDaughterDaughter.getVertex()[0], mcpDaughterDaughter.getEndpoint()[1] - mcpDaughterDaughter.getVertex()[1], mcpDaughterDaughter.getEndpoint()[2] - mcpDaughterDaughter.getVertex()[2]
-                                    
-                                    
-                                    prod_yz = sqrt(daughter_vy**2 + daughter_vz**2)
-
-                                    phi_prod = atan(daughter_vy/daughter_vx)
-                                    phi_end = atan(daughter_ey/daughter_ex)
-
-                                    dphi = phi_end - phi_prod # calculating in this order gives correct sign of d0
-
-                                    #daughter_d0 = prod_xy * sin(dphi)
-
-                                    theta_prod = atan(daughter_vz/daughter_vy)
-                                    theta_end = atan(daughter_ez/daughter_ey)
-
-                                    dtheta = theta_prod - theta_end # calculating this gives correct sign of z0??? check
-
-                                    #daughter_z0 = prod_yz * sin(dtheta)
-
-                                    # Get the vertex position
+                                    # Get the vertex position and compute d0, z0 as approximations
                                     daughter_vx, daughter_vy, daughter_vz = mcpDaughter.getVertex()[0], mcpDaughter.getVertex()[1], mcpDaughter.getVertex()[2]
 
-                                    #print("daughter vertex position: ", daughter_vx, daughter_vy, daughter_vz)
-                                    
-                                    # Get the momentum
-                                    daughter_px, daughter_py, daughter_pz = mcpDaughter.getMomentum()[0], mcpDaughter.getMomentum()[1], mcpDaughter.getMomentum()[2]
-                                    
-                                    # Calculate transverse impact parameter (d0)
-                                    daughter_pt = sqrt(daughter_px**2 + daughter_py**2)  # Transverse momentum
-                                    #print("daughter_pt:", daughter_pt)
-                                    daughter_d0 = (daughter_vx * daughter_py - daughter_vy * daughter_px) / daughter_pt
-                                    
-                                    # Calculate longitudinal impact parameter (z0)
-                                    daughter_z0 = daughter_vz - (daughter_vz * daughter_pt / sqrt(daughter_px**2 + daughter_py**2 + daughter_pz**2))
-                                    """
-                                    daughter_vx, daughter_vy, daughter_vz = mcpDaughter.getVertex()[0], mcpDaughter.getVertex()[1], mcpDaughter.getVertex()[2]
                                     prod_xy = sqrt(daughter_vx**2 + daughter_vy**2)
-                                    # compute delta phi between PV-to-DV vector, and the displaced track
-                                    dPhi = mcp_daughterDaughter_tlv.Phi() - mcp_tlv.Phi()
+                                    prod_xyz = sqrt(daughter_vx**2 + daughter_vy**2 + daughter_vz**2)
+                                    dPhi = ROOT.Math.VectorUtil.DeltaPhi(mcp_daughterDaughter_tlv, mcp_tlv)
 
-                                    # compute d0 as prodRxy*sin(dPhi)
-                                    #daughter_d0 = prod_xy*sin(dPhi)
-                                    prod_yz = sqrt(daughter_vy**2 + daughter_vz**2)
-                                    dTheta = mcp_daughterDaughter_tlv.Theta() - mcp_tlv.Theta()
-                                    #daughter_z0 = prod_yz * sin(dTheta)
-
-                                    #print("daughter vertex position: ", daughter_vx, daughter_vy, daughter_vz)
+                                    daughter_d0 = prod_xy*sin(dPhi)
+                                    dTheta = mcp_daughterDaughter_tlv.Theta() -  mcp_tlv.Theta()
+                                    daughter_z0 = (prod_xyz) * sin(dTheta) # change to rz vertex_z + prod_rz * sin(dtheta)
                                     
-                                    daughter_vx, daughter_vy, daughter_vz = mcpDaughter.getVertex()[0], mcpDaughter.getVertex()[1], mcpDaughter.getVertex()[2] ### Version taken from L1TrkNTupleMaker.cc
-
-                                    r2inv = (mcpDaughterDaughter.getCharge() * speedoflight * Bfield) / (mcp_daughterDaughter_tlv.Perp())
-
-                                    x0p = -daughter_vx - (sin(mcp_daughterDaughter_tlv.Phi()) / (r2inv) )
-                                    y0p = daughter_vy + (cos(mcp_daughterDaughter_tlv.Phi()) / (r2inv) )
-
-                                    r0p = sqrt(x0p**2 + y0p ** 2)
-                                    daughter_d0 = mcpDaughterDaughter.getCharge()*r0p - (1/(r2inv))
-
-                                    delphi = mcp_daughterDaughter_tlv.Phi() - atan(-x0p/y0p)
-
-                                    if delphi < -pi:
-                                        delphi += 2.0 * pi
-                                    if delphi > pi:
-                                        delphi -= 2.0 * pi
-
-                                    daughter_t = 1/tan(2*atan(exp(-mcp_daughterDaughter_tlv.Eta()))) # t track parameter not time
-                                    
-                                    daughter_z0 = daughter_vz + daughter_t * (delphi / (r2inv))
-
                                     mcp_daughter_d0_rt.push_back(daughter_d0)
                                     mcp_daughter_z0_rt.push_back(daughter_z0)
 
@@ -819,6 +750,8 @@ for sample in sampleNames:
                                             LC_pixel_nhit = 0
                                             LC_inner_nhit = 0
                                             LC_outer_nhit = 0
+                                            lastLayer = -1
+                                            nLayersCrossed = 0
                                             for hit in track.getTrackerHits():
                                             # now decode hits
                                                 encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
@@ -826,14 +759,20 @@ for sample in sampleNames:
                                                 cellID = int(hit.getCellID0())
                                                 decoder.setValue(cellID)
                                                 detector = decoder["system"].value()
+                                                layer = decoder['layer'].value()
                                                 if detector == 1 or detector == 2:
                                                     LC_pixel_nhit += 1
                                                 if detector == 3 or detector == 4:
                                                     LC_inner_nhit += 1
                                                 if detector == 5 or detector == 6:
                                                     LC_outer_nhit += 1
+                                                if (lastLayer != layer):
+                                                    if (detector <= 2): # if vdx
+                                                        nLayersCrossed += 0.5
+                                                    nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+                                                lastLayer = layer
                                             nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
-                                            if (nTotalHits < 3.5):
+                                            if (nTotalHits < 3.5 or nLayersCrossed < 3.5):
                                                 #print("doesn't pass nhits cut, skip daughter 2 track")
                                                 continue 
                                             theta = np.pi/2- np.arctan(track.getTanLambda())
