@@ -23,3 +23,12 @@ make
 export MARLIN_DLL=$(realpath lib/libMyBIBUtils.so):${MARLIN_DLL}
 ```
 
+For running on osg cluster, to setup environment for either sim, digi, or reco use: 
+```bash
+apptainer run \
+    -B /scratch/${USER} \
+    -B /ospool/uc-shared/project/muoncollider/ \
+    /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/muon-collider/mucoll-deploy/mucoll:2.9-alma9
+
+source /opt/setup_mucoll.sh
+```
