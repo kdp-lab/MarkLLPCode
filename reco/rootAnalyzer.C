@@ -24,57 +24,74 @@
 
 using namespace std;
 
-// Declare global histograms (to overlay multiple samples) FIXME find better way of doing this!! 
-TH1F* displaced_track_pt_1_01_ = new TH1F("displaced_track_pt_1_01", ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
-TH1F* displaced_track_pt_1_1_ = new TH1F("displaced_track_pt_1_1", ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
-TH1F* displaced_track_pt_45_01_ = new TH1F("displaced_track_pt_45_01", ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
-TH1F* displaced_track_pt_45_1_ = new TH1F("displaced_track_pt_45_1", ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
 
-TH1F* displaced_track_d0_1_01_ = new TH1F("displaced_track_d0_1_01", ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);
-TH1F* displaced_track_d0_1_1_ = new TH1F("displaced_track_d0_1_1", ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);
-TH1F* displaced_track_d0_45_01_ = new TH1F("displaced_track_d0_45_01", ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);
-TH1F* displaced_track_d0_45_1_ = new TH1F("displaced_track_d0_45_1", ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);
+TString massPoint = "1TeV";
+//TString massPoint = "2.5TeV";
+//TString massPoint = "4TeV";
+//TString massPoint = "4.5TeV";
 
-TH1F* displaced_chi2_reduced_1_01_ = new TH1F("displaced_chi2_reduced_1_01", "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
-TH1F* displaced_chi2_reduced_1_1_ = new TH1F("displaced_chi2_reduced_1_1", "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
-TH1F* displaced_chi2_reduced_45_01_ = new TH1F("displaced_chi2_reduced_45_01", "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
-TH1F* displaced_chi2_reduced_45_1_ = new TH1F("displaced_chi2_reduced_45_1", "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
+std::map<TString, TH1F*> displaced_track_pt_map;
+std::map<TString, TH1F*> displaced_track_d0_map;
+std::map<TString, TH1F*> displaced_resz0_map;
+std::map<TString, TH1F*> displaced_resd0_map;
+std::map<TString, TH1F*> displaced_chi2_reduced_map;
+std::map<TString, TH1F*> displaced_nhits_map;
+std::map<TString, TH1F*> displaced_matched_d0_map;
+std::map<TString, TH1F*> displaced_matched_rxy_map;
+std::map<TString, TH1F*> displaced_tp_d0_map;
+std::map<TString, TH1F*> displaced_tp_rxy_map;
+std::map<TString, TH1F*> displaced_mcp_d0_map;
+std::map<TString, TH1F*> displaced_mcp_rxy_map;
+std::map<TString, TH1F*> displaced_tp_pt_map;
+std::map<TString, TH1F*> displaced_matched_pt_map;
+std::map<TString, TH1F*> displaced_mcp_pt_map;
+std::map<TString, TH1F*> displaced_eff_acc_d0_map;
+std::map<TString, TH1F*> displaced_eff_d0_map;
+std::map<TString, TH1F*> displaced_eff_acc_rxy_map;
+std::map<TString, TH1F*> displaced_eff_rxy_map;
+std::map<TString, TH1F*> displaced_eff_acc_pt_map;
+std::map<TString, TH1F*> displaced_eff_pt_map;
+std::map<TString, TH1F*> displaced_eff_acc_z0_map; // FIXME make eff vs z0, eta plots
+std::map<TString, TH1F*> displaced_eff_z0_map;
+std::map<TString, TH1F*> displaced_eff_acc_eta_map;
+std::map<TString, TH1F*> displaced_eff_eta_map;
 
-TH1F* displaced_nhits_1_01_ = new TH1F("displaced_nhits_1_01", ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
-TH1F* displaced_nhits_1_1_ = new TH1F("displaced_nhits_1_1", ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
-TH1F* displaced_nhits_45_01_ = new TH1F("displaced_nhits_45_01", ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
-TH1F* displaced_nhits_45_1_ = new TH1F("displaced_nhits_45_1", ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
+  std::map<TString, TString> legend_map = {
+    {"1000_0.05", "1 TeV, 15 mm"},
+    {"1000_0.1", "1 TeV, 30 mm"},
+    {"1000_1", "1 TeV, 300 mm"},
+    {"1000_10", "1 TeV, 3000 mm"},
+    {"2500_0.1", "2.5 TeV, 30 mm"},
+    {"2500_1", "2.5 TeV, 300 mm"},
+    {"2500_10", "2.5 TeV, 3000 mm"},
+    {"4000_0.1", "4 TeV, 30 mm"},
+    {"4000_1", "4 TeV, 300 mm"},
+    {"4000_10", "4 TeV, 3000 mm"},
+    {"4500_0.1", "4.5 TeV, 30 mm"},
+    {"4500_1", "4.5 TeV, 300 mm"},
+    {"4500_10", "4.5 TeV, 3000 mm"}
+  };
 
-// for efficiency & AxE need matched, tp, mcp FIXME RENAME D0 NOW RXY
-TH1F* displaced_matched_d0_1_01_ = new TH1F("displaced_matched_d0_1_01", "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 10, 0, 500.0);
-TH1F* displaced_matched_d0_1_1_ = new TH1F("displaced_matched_d0_1_1", "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 10, 0, 500.0);
-TH1F* displaced_matched_d0_45_01_ = new TH1F("displaced_matched_d0_45_01", "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 10, 0, 500.0);
-TH1F* displaced_matched_d0_45_1_ = new TH1F("displaced_matched_d0_45_1", "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 10, 0, 500.0);
-
-TH1F* displaced_tp_d0_1_01_ = new TH1F("displaced_tp_d0_1_01", "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_tp_d0_1_1_ = new TH1F("displaced_tp_d0_1_1", "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_tp_d0_45_01_ = new TH1F("displaced_tp_d0_45_01", "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_tp_d0_45_1_ = new TH1F("displaced_tp_d0_45_1", "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);
-
-TH1F* displaced_mcp_d0_1_01_ = new TH1F("displaced_mcp_d0_1_01", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_mcp_d0_1_1_ = new TH1F("displaced_mcp_d0_1_1", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_mcp_d0_45_01_ = new TH1F("displaced_mcp_d0_45_01", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);
-TH1F* displaced_mcp_d0_45_1_ = new TH1F("displaced_mcp_d0_45_1", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);
-
-TH1F* displaced_tp_pt_1_01_ = new TH1F("displaced_tp_pt_1_01", ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_tp_pt_1_1_ = new TH1F("displaced_tp_pt_1_1", ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_tp_pt_45_01_ = new TH1F("displaced_tp_pt_45_01", ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_tp_pt_45_1_ = new TH1F("displaced_tp_pt_45_1", ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
-
-TH1F* displaced_matched_pt_1_01_ = new TH1F("displaced_matched_pt_1_01", ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_matched_pt_1_1_ = new TH1F("displaced_matched_pt_1_1", ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_matched_pt_45_01_ = new TH1F("displaced_matched_pt_45_01", ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_matched_pt_45_1_ = new TH1F("displaced_matched_pt_45_1", ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-
-TH1F* displaced_mcp_pt_1_01_ = new TH1F("displaced_mcp_pt_1_01", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_mcp_pt_1_1_ = new TH1F("displaced_mcp_pt_1_1", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_mcp_pt_45_01_ = new TH1F("displaced_mcp_pt_45_01", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-TH1F* displaced_mcp_pt_45_1_ = new TH1F("displaced_mcp_pt_45_1", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
+// Populate the maps with histograms
+void initialize_histograms(std::vector<TString> fileNames) {
+  for (TString fileName : fileNames){
+    displaced_track_pt_map[fileName] = new TH1F("displaced_track_pt_" + fileName, ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
+    displaced_track_d0_map[fileName] = new TH1F("displaced_track_d0_" + fileName, ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);;
+    displaced_resz0_map[fileName] = new TH1F("displaced_resz0_" + fileName, ";|Track z_{0} - Matched z_{0}|; Tracks / 0.2 mm", 25, 0, 5);;
+    displaced_resd0_map[fileName] = new TH1F("displaced_resd0_" + fileName, ";|Track d_{0} - Matched d_{0}|; Tracks / 0.2 mm", 20, 0, 2);;
+    displaced_chi2_reduced_map[fileName] = new TH1F("displaced_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);;
+    displaced_nhits_map[fileName] = new TH1F("displaced_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
+    displaced_matched_d0_map[fileName] = new TH1F("displaced_matched_d0_" + fileName, "; Tracking Particle d_{0} [mm]; Tracking particles / 20 mm", 10, 0, 200.0);;
+    displaced_matched_rxy_map[fileName] = new TH1F("displaced_matched_rxy_" + fileName, "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 10, 0, 500.0);;
+    displaced_tp_d0_map[fileName] = new TH1F("displaced_tp_d0_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 20 mm", 10, 0, 200.0);;
+    displaced_tp_rxy_map[fileName] = new TH1F("displaced_tp_rxy_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);;
+    displaced_mcp_d0_map[fileName] = new TH1F("displaced_mcp_d0_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 10, 0, 200.0);;
+    displaced_mcp_rxy_map[fileName] = new TH1F("displaced_mcp_rxy_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);;
+    displaced_tp_pt_map[fileName] = new TH1F("displaced_tp_pt_" + fileName, ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);;
+    displaced_matched_pt_map[fileName] = new TH1F("displaced_matched_pt_" + fileName, ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
+    displaced_mcp_pt_map[fileName] = new TH1F("displaced_mcp_pt_" + fileName, ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
+  }
+}
 
 void SetPlotStyle();
 void mySmallText(Double_t x, Double_t y, Color_t color, char* text);
@@ -109,14 +126,6 @@ float computeStandardError(const std::vector<float>& vec, float stdDev) {
     return stdDev / std::sqrt(vec.size());
 }
 
-void callRootAnalyzer(){
-  //std::vector<TString> fileNames = {"1000_0.05_reco", "1000_0.1_reco", "1000_1_reco", "4500_0.1_reco", "4500_1_reco", "4500_10_reco"};
-  std::vector<TString> fileNames = {"1000_0.1_reco", "1000_1_reco", "4500_0.1_reco", "4500_1_reco"};
-  for (int i = 0; i < fileNames.size(); i++){
-    rootAnalyzer(fileNames[i]);
-  }
-}
-
 // Example Usage: callRootAnalyzer() (change filenames in this file)
 // Will output plots as pdfs to a subdirectory named according to the filename
 
@@ -135,21 +144,21 @@ const TString fileName
     // ----------------------------------------------------------------------------------------------------------------
     // Read NTuples from one file
     TChain* MCPs = new TChain("MCPs");
-    MCPs->Add(fileName + "_TIMING32ns64ns.root");
+    MCPs->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* StauMCPs = new TChain("StauMCPs");
-    StauMCPs->Add(fileName + "_TIMING32ns64ns.root");
+    StauMCPs->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* StauDecayProductsMCPs = new TChain("StauDecayProductsMCPs");
-    StauDecayProductsMCPs->Add(fileName + "_TIMING32ns64ns.root");
+    StauDecayProductsMCPs->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* AllTracks = new TChain("AllTracks");
-    AllTracks->Add(fileName + "_TIMING32ns64ns.root");
+    AllTracks->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* AllStauTracks = new TChain("AllStauTracks");
-    AllStauTracks->Add(fileName + "_TIMING32ns64ns.root");
+    AllStauTracks->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* AllDecayProductTracks = new TChain("AllDecayProductTracks");
-    AllDecayProductTracks->Add(fileName + "_TIMING32ns64ns.root");
+    AllDecayProductTracks->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* AllFakeTracks = new TChain("AllFakeTracks");
-    AllFakeTracks->Add(fileName + "_TIMING32ns64ns.root");
+    AllFakeTracks->Add("recoRootFiles/" + fileName + "_reco.root");
     TChain* AllHits = new TChain("AllHits");
-    AllHits->Add(fileName + "_TIMING32ns64ns.root");
+    AllHits->Add("recoRootFiles/" + fileName + "_reco.root");
 
     if (MCPs->GetEntries() == 0 || StauMCPs->GetEntries() == 0 || StauDecayProductsMCPs->GetEntries() == 0 || AllTracks->GetEntries() == 0 || AllStauTracks->GetEntries() == 0 || AllDecayProductTracks->GetEntries() == 0 || AllFakeTracks->GetEntries() == 0 || AllHits->GetEntries() == 0) {
         cout << "A file / branch doesn't exist or is empty, returning..." << "\n";
@@ -660,7 +669,7 @@ const TString fileName
     TH1F* stau_matched_pt = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
     TH1F* stau_matched_pt_all = new TH1F("stau_matched_pt_all", ";Tracking particle p_{T} [GeV]; Tracking particles (all) / 100.0 GeV", 30, 2000.0, 5000.0);
     TH1F* displaced_matched_pt = new TH1F("displaced_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-    TH1F* stau_track_pt = new TH1F("stau_track_pt", ";Stau Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 5000.0);
+    TH1F* stau_track_pt = new TH1F("stau_track_pt", ";Stau Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
     TH1F* displaced_track_pt = new TH1F("displaced_track_pt", ";Displaced Stau Decay Product Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
 
     TH1F* stau_matched_eta = new TH1F("stau_matched_eta", ";Stau #eta; Tracking particle / 0.2", 25, -2.5, 2.5);
@@ -678,8 +687,8 @@ const TString fileName
 
     TH1F* displaced_resPt = new TH1F("displaced_resPt", ";Displaced Track p_{T} - Matched p_{T}; Tracks / 100.0 GeV", 100, -5000, 5000);
     TH1F* displaced_resEta = new TH1F("displaced_resEta", ";Displaced Track #eta - Matched #eta; Tracks / 0.01", 20, -0.1, 0.1);
-    TH1F* displaced_resz0 = new TH1F("displaced_resz0", ";Displaced Track z_{0} - Matched z_{0}; Tracks / 1 mm", 20, -10, 10);
-    TH1F* displaced_resd0 = new TH1F("displaced_resd0", ";Displaced Track d_{0} - Matched d_{0}; Tracks / 1 mm", 20, -10, 10);
+    TH1F* displaced_resz0 = new TH1F("displaced_resz0", ";|Track z_{0} - Matched z_{0}|; Tracks / 0.2 mm", 25, 0, 5);
+    TH1F* displaced_resd0 = new TH1F("displaced_resd0", ";|Track d_{0} - Matched d_{0}|; Tracks / 0.1 mm", 20, 0, 2);
 
     TH1F* displaced_PtRel = new TH1F("displaced_PtRel", ";|((Displaced Track p_{T} - Matched p_{T}) / Matched p_{T})|; Tracks / 0.1", 20, 0, 2);
     TH1F* PtRelvsPt = new TH1F("PtRelvsPt", ";Tracking particle p_{T} [GeV];p_{T} resolution ", 10, 0, 5000.0);
@@ -699,7 +708,7 @@ const TString fileName
     TH1F* fake_track_d0 = new TH1F("fake_track_d0", ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     TH1F* fake_track_z0 = new TH1F("fake_track_z0", ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     TH1F* fake_track_chi2_reduced = new TH1F("fake_track_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
-    
+
     TH1F* displaced_resEta_z0 = new TH1F("displaced_resEta_z0", ";Matched Displaced track #eta ; z_{0} res [mm] ", 20, -10, 10);
     TH1F* displaced_resPt_z0 = new TH1F("displaced_resPt_z0", ";Matched Displaced track p_{T}; z_{0} res [mm] ", 20, -10, 10);
     TH1F* displaced_resz0_z0 = new TH1F("displaced_resz0_z0", "; z{0} [mm]; z_{0} res [mm] ", 20, -10, 10);
@@ -716,18 +725,13 @@ const TString fileName
     
     // resolution (z0, pt) per different variables
     // truth level and track level distributions (pt, eta, phi, z0, d0, etc.)
-
-
-    //hisRZTTStubs_ = dir.make<TH2F>("RZ TTStubs", ";Stub z; Stub r", 400, -300, 300, 400, 0., 120); taken from iranalyzer
-
-    
     
     // ----------------------------------------------------------------------------------------------------------------
     // Calculate tracking efficiency, fake/genuine track. rates, etc. and fill histograms
 
     char ctxt[500];
     TCanvas c;
-    TString dir = "Plots_" + fileName + "_TIMING32ns64ns";
+    TString dir = "Plots_" + fileName + "";
     gSystem->mkdir(dir);
     TString DIR = dir + "/";
 
@@ -865,41 +869,16 @@ const TString fileName
           displaced_tp_d0->Fill(mcp_daughter_d0->at(iDP));
           displaced_tp_z0->Fill(mcp_daughter_z0->at(iDP));
         }
-        if(fileName == "1000_0.1_reco"){ // fixme use to fill specific histograms
-          if(mcp_daughter_track_reconstructable_bool->at(iDP)){
-            displaced_tp_pt_1_01_->Fill(mcp_daughter_pt->at(iDP));
-            displaced_tp_d0_1_01_->Fill(mcp_daughter_r_vertex->at(iDP));
-          }
-          displaced_mcp_pt_1_01_->Fill(mcp_daughter_pt->at(iDP));
-          displaced_mcp_d0_1_01_->Fill(mcp_daughter_r_vertex->at(iDP));
+
+        if(mcp_daughter_track_reconstructable_bool->at(iDP)){
+          displaced_tp_pt_map[fileName]->Fill(mcp_daughter_pt->at(iDP));
+          displaced_tp_rxy_map[fileName]->Fill(mcp_daughter_r_vertex->at(iDP));
+          displaced_tp_d0_map[fileName]->Fill(abs(mcp_daughter_d0->at(iDP)));
         }
-        
-        else if(fileName == "1000_1_reco"){
-          if(mcp_daughter_track_reconstructable_bool->at(iDP)){
-            displaced_tp_pt_1_1_->Fill(mcp_daughter_pt->at(iDP));
-            displaced_tp_d0_1_1_->Fill(mcp_daughter_r_vertex->at(iDP));
-          }
-          displaced_mcp_pt_1_1_->Fill(mcp_daughter_pt->at(iDP));
-          displaced_mcp_d0_1_1_->Fill(mcp_daughter_r_vertex->at(iDP));
-        }
-        
-        else if(fileName == "4500_0.1_reco"){
-          if(mcp_daughter_track_reconstructable_bool->at(iDP)){
-            displaced_tp_pt_45_01_->Fill(mcp_daughter_pt->at(iDP));
-            displaced_tp_d0_45_01_->Fill(mcp_daughter_r_vertex->at(iDP));
-          }
-          displaced_mcp_pt_45_01_->Fill(mcp_daughter_pt->at(iDP));
-          displaced_mcp_d0_45_01_->Fill(mcp_daughter_r_vertex->at(iDP));
-          
-        }
-        else if(fileName == "4500_1_reco"){
-          if(mcp_daughter_track_reconstructable_bool->at(iDP)){
-            displaced_tp_pt_45_1_->Fill(mcp_daughter_pt->at(iDP));
-            displaced_tp_d0_45_1_->Fill(mcp_daughter_r_vertex->at(iDP));
-          }
-          displaced_mcp_pt_45_1_->Fill(mcp_daughter_pt->at(iDP));
-          displaced_mcp_d0_45_1_->Fill(mcp_daughter_r_vertex->at(iDP));
-        }
+        displaced_mcp_pt_map[fileName]->Fill(mcp_daughter_pt->at(iDP));
+        displaced_mcp_d0_map[fileName]->Fill(abs(mcp_daughter_d0->at(iDP)));
+        displaced_mcp_rxy_map[fileName]->Fill(abs(mcp_daughter_r_vertex->at(iDP)));
+
       }
       
       for (unsigned int iDPTrack = 0; iDPTrack < LC_daughter_pt_match->size(); ++iDPTrack){ 
@@ -917,8 +896,8 @@ const TString fileName
 
         displaced_resPt->Fill(LC_daughter_track_pt->at(iDPTrack) - LC_daughter_pt_match->at(iDPTrack));
         displaced_resEta->Fill(LC_daughter_track_eta->at(iDPTrack) - LC_daughter_eta_match->at(iDPTrack));
-        displaced_resd0->Fill(LC_daughter_d0->at(iDPTrack) - LC_daughter_d0_match->at(iDPTrack));
-        displaced_resz0->Fill(LC_daughter_z0->at(iDPTrack) - LC_daughter_z0_match->at(iDPTrack));
+        displaced_resd0->Fill(abs(LC_daughter_d0->at(iDPTrack) - LC_daughter_d0_match->at(iDPTrack)));
+        displaced_resz0->Fill(abs(LC_daughter_z0->at(iDPTrack) - LC_daughter_z0_match->at(iDPTrack)));
 
         displaced_PtRel->Fill(abs(LC_daughter_track_pt->at(iDPTrack) - LC_daughter_pt_match->at(iDPTrack)) / LC_daughter_pt_match->at(iDPTrack));
         int ptBin = displaced_matched_pt->FindBin(LC_daughter_pt_match->at(iDPTrack));
@@ -928,38 +907,15 @@ const TString fileName
 
         displaced_nhits->Fill(LC_daughter_nhits->at(iDPTrack));
 
-        if(fileName == "1000_0.1_reco"){ 
-          displaced_track_pt_1_01_->Fill(LC_daughter_track_pt->at(iDPTrack));
-          displaced_track_d0_1_01_->Fill(LC_daughter_d0->at(iDPTrack));
-          displaced_chi2_reduced_1_01_->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
-          displaced_nhits_1_01_->Fill(LC_daughter_nhits->at(iDPTrack));
-          displaced_matched_d0_1_01_->Fill(LC_daughter_r_vertex_match->at(iDPTrack));
-          displaced_matched_pt_1_01_->Fill(LC_daughter_pt_match->at(iDPTrack));
-        }
-        else if(fileName == "1000_1_reco"){
-          displaced_track_pt_1_1_->Fill(LC_daughter_track_pt->at(iDPTrack));
-          displaced_track_d0_1_1_->Fill(LC_daughter_d0->at(iDPTrack));
-          displaced_chi2_reduced_1_1_->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
-          displaced_nhits_1_1_->Fill(LC_daughter_nhits->at(iDPTrack));
-          displaced_matched_d0_1_1_->Fill(LC_daughter_r_vertex_match->at(iDPTrack));
-          displaced_matched_pt_1_1_->Fill(LC_daughter_pt_match->at(iDPTrack));
-        }
-        else if(fileName == "4500_0.1_reco"){
-          displaced_track_pt_45_01_->Fill(LC_daughter_track_pt->at(iDPTrack));
-          displaced_track_d0_45_01_->Fill(LC_daughter_d0->at(iDPTrack));
-          displaced_chi2_reduced_45_01_->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
-          displaced_nhits_45_01_->Fill(LC_daughter_nhits->at(iDPTrack));
-          displaced_matched_d0_45_01_->Fill(LC_daughter_r_vertex_match->at(iDPTrack));
-          displaced_matched_pt_45_01_->Fill(LC_daughter_pt_match->at(iDPTrack));
-        }
-        else if(fileName == "4500_1_reco"){
-          displaced_track_pt_45_1_->Fill(LC_daughter_track_pt->at(iDPTrack));
-          displaced_track_d0_45_1_->Fill(LC_daughter_d0->at(iDPTrack));
-          displaced_chi2_reduced_45_1_->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
-          displaced_nhits_45_1_->Fill(LC_daughter_nhits->at(iDPTrack));
-          displaced_matched_d0_45_1_->Fill(LC_daughter_r_vertex_match->at(iDPTrack));
-          displaced_matched_pt_45_1_->Fill(LC_daughter_pt_match->at(iDPTrack));
-        }
+        displaced_track_pt_map[fileName]->Fill(LC_daughter_track_pt->at(iDPTrack));
+        displaced_track_d0_map[fileName]->Fill(LC_daughter_d0->at(iDPTrack));
+        displaced_chi2_reduced_map[fileName]->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
+        displaced_nhits_map[fileName]->Fill(LC_daughter_nhits->at(iDPTrack));
+        displaced_matched_d0_map[fileName]->Fill(abs(LC_daughter_d0_match->at(iDPTrack)));
+        displaced_matched_rxy_map[fileName]->Fill(abs(LC_daughter_r_vertex_match->at(iDPTrack)));
+        displaced_matched_pt_map[fileName]->Fill(LC_daughter_pt_match->at(iDPTrack));
+        displaced_resd0_map[fileName]->Fill(abs(LC_daughter_d0->at(iDPTrack) - LC_daughter_d0_match->at(iDPTrack)));
+        displaced_resz0_map[fileName]->Fill(abs(LC_daughter_z0->at(iDPTrack) - LC_daughter_z0_match->at(iDPTrack)));
       }
 
       for (unsigned int iFakeTrk = 0; iFakeTrk < fake_pt->size(); ++iFakeTrk){ // Fill fake track properties
@@ -1050,8 +1006,10 @@ const TString fileName
   c.SaveAs(DIR + "displaced_resPt.pdf");
   displaced_resEta->Draw();
   c.SaveAs(DIR + "displaced_resEta.pdf");
+  //displaced_resd0->Scale(1.0 / displaced_resd0->GetEntries());
   displaced_resd0->Draw();
   c.SaveAs(DIR + "displaced_resd0.pdf");
+  //displaced_resz0->Scale(1.0 / displaced_resz0->GetEntries());
   displaced_resz0->Draw();
   c.SaveAs(DIR + "displaced_resz0.pdf");
 
@@ -1307,419 +1265,6 @@ const TString fileName
   // Save the canvas as a PDF
   c_over->SaveAs(DIR + "displaced_eff_total_acc_z0.pdf");
 
-
-  // overlay multiple sample histograms :
-
-  TCanvas* cLog = new TCanvas("cLog", "Overlayed Histograms", 800, 600);
-  cLog->SetLogy();
-
-  TLegend* legendLog = new TLegend(0.7, 0.7, 0.95, 0.95);
-  legendLog->SetTextSize(0.03); // Adjust text size
-  legendLog->AddEntry(displaced_track_pt_1_01_, "1 TeV, 30 mm", "l");
-  legendLog->AddEntry(displaced_track_pt_1_1_, "1 TeV, 300 mm", "l");
-  legendLog->AddEntry(displaced_track_pt_45_01_, "4.5 TeV, 30 mm", "l");
-  legendLog->AddEntry(displaced_track_pt_45_1_, "4.5 TeV, 300 mm", "l");
-  legendLog->Draw();
-
-  // Draw histograms on the same canvas
-  displaced_track_d0_1_01_->SetLineColor(kRed);
-  displaced_track_d0_1_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_d0_1_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_d0_1_01_->SetLineWidth(2); // Set line width to 3
-  displaced_track_d0_1_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_d0_1_01_->SetMaximum(240);
-  displaced_track_d0_1_1_->SetLineColor(kBlue);
-  displaced_track_d0_1_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_d0_1_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_d0_1_1_->SetLineWidth(2); // Set line width to 3
-  displaced_track_d0_1_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_d0_45_01_->SetLineColor(kGreen);
-  displaced_track_d0_45_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_d0_45_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_d0_45_01_->SetLineWidth(2); // Set line width to 3
-  displaced_track_d0_45_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_d0_45_1_->SetLineColor(kMagenta);
-  displaced_track_d0_45_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_d0_45_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_d0_45_1_->SetLineWidth(2); // Set line width to 3
-  displaced_track_d0_45_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-
-  // Draw the first histogram and the rest on the same canvas
-  displaced_track_d0_1_01_->Draw("HIST");
-  displaced_track_d0_1_1_->Draw("HIST SAME");
-  displaced_track_d0_45_01_->Draw("HIST SAME");
-  displaced_track_d0_45_1_->Draw("HIST SAME");
-
-  // Create and draw legend
-  legendLog->Draw();
-
-  // Save canvas
-  cLog->SaveAs("displaced_track_d0_overlay.pdf");
-
-  // Create canvas
-  TCanvas* c1 = new TCanvas("c1", "Overlayed Histograms", 800, 600);
-
-  // Draw histograms on the same canvas
-  displaced_track_pt_1_01_->SetLineColor(kRed);
-  displaced_track_pt_1_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_pt_1_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_pt_1_01_->SetLineWidth(2); // Set line width to 3
-  displaced_track_pt_1_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_pt_1_1_->SetLineColor(kBlue);
-  displaced_track_pt_1_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_pt_1_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_pt_1_1_->SetLineWidth(2); // Set line width to 3
-  displaced_track_pt_1_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_pt_45_01_->SetLineColor(kGreen);
-  displaced_track_pt_45_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_pt_45_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_pt_45_01_->SetLineWidth(2); // Set line width to 3
-  displaced_track_pt_45_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_track_pt_45_1_->SetLineColor(kMagenta);
-  displaced_track_pt_45_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_track_pt_45_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_track_pt_45_1_->SetLineWidth(2); // Set line width to 3
-  displaced_track_pt_45_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-
-  // Draw the first histogram and the rest on the same canvas
-  displaced_track_pt_1_01_->Draw("HIST");
-  displaced_track_pt_1_1_->Draw("HIST SAME");
-  displaced_track_pt_45_01_->Draw("HIST SAME");
-  displaced_track_pt_45_1_->Draw("HIST SAME");
-
-  // Create and draw legend
-  TLegend* legend1 = new TLegend(0.7, 0.7, 0.95, 0.95);
-  legend1->SetTextSize(0.03); // Adjust text size
-  legend1->AddEntry(displaced_track_pt_1_01_, "1 TeV, 30 mm", "l");
-  legend1->AddEntry(displaced_track_pt_1_1_, "1 TeV, 300 mm", "l");
-  legend1->AddEntry(displaced_track_pt_45_01_, "4.5 TeV, 30 mm", "l");
-  legend1->AddEntry(displaced_track_pt_45_1_, "4.5 TeV, 300 mm", "l");
-  legend1->Draw();
-
-  // Save canvas
-  c1->SaveAs("displaced_track_pt_overlay.pdf");
-
-    // Draw histograms on the same canvas
-  displaced_nhits_1_01_->SetLineColor(kRed);
-  displaced_nhits_1_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_nhits_1_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_nhits_1_01_->SetLineWidth(2); // Set line width to 3
-  displaced_nhits_1_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_nhits_1_1_->SetLineColor(kBlue);
-  displaced_nhits_1_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_nhits_1_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_nhits_1_1_->SetLineWidth(2); // Set line width to 3
-  displaced_nhits_1_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_nhits_45_01_->SetLineColor(kGreen);
-  displaced_nhits_45_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_nhits_45_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_nhits_45_01_->SetLineWidth(2); // Set line width to 3
-  displaced_nhits_45_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_nhits_45_1_->SetLineColor(kMagenta);
-  displaced_nhits_45_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_nhits_45_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_nhits_45_1_->SetLineWidth(2); // Set line width to 3
-  displaced_nhits_45_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-
-  // Draw the first histogram and the rest on the same canvas
-  displaced_nhits_1_01_->Draw("HIST");
-  displaced_nhits_1_1_->Draw("HIST SAME");
-  displaced_nhits_45_01_->Draw("HIST SAME");
-  displaced_nhits_45_1_->Draw("HIST SAME");
-
-  // Create and draw legend
-  legend1->Draw();
-
-  // Save canvas
-  c1->SaveAs("displaced_track_nhits_overlay.pdf");
-
-  // Draw histograms on the same canvas
-  displaced_chi2_reduced_1_01_->SetLineColor(kRed);
-  displaced_chi2_reduced_1_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_1_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_1_01_->SetLineWidth(2); // Set line width to 3
-  displaced_chi2_reduced_1_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_chi2_reduced_1_1_->SetLineColor(kBlue);
-  displaced_chi2_reduced_1_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_1_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_1_1_->SetLineWidth(2); // Set line width to 3
-  displaced_chi2_reduced_1_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_chi2_reduced_45_01_->SetLineColor(kGreen);
-  displaced_chi2_reduced_45_01_->GetXaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_45_01_->GetYaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_45_01_->SetLineWidth(2); // Set line width to 3
-  displaced_chi2_reduced_45_01_->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_chi2_reduced_45_1_->SetLineColor(kMagenta);
-  displaced_chi2_reduced_45_1_->GetXaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_45_1_->GetYaxis()->SetTitleSize(0.05);
-  displaced_chi2_reduced_45_1_->SetLineWidth(2); // Set line width to 3
-  displaced_chi2_reduced_45_1_->SetMarkerSize(1.5); // Set marker size to 1.5
-
-  // Draw the first histogram and the rest on the same canvas
-  displaced_chi2_reduced_1_01_->Draw("HIST");
-  displaced_chi2_reduced_1_1_->Draw("HIST SAME");
-  displaced_chi2_reduced_45_01_->Draw("HIST SAME");
-  displaced_chi2_reduced_45_1_->Draw("HIST SAME");
-
-  // Create and draw legend
-  legend1->Draw();
-
-  // Save canvas
-  c1->SaveAs("displaced_track_chi2red_overlay.pdf");
-
-  // efficiency vs. d0
-  displaced_matched_d0_1_01_->Sumw2();
-  displaced_tp_d0_1_01_->Sumw2();
-  TH1F* displaced_eff_acc_d0_1_01 = (TH1F*)displaced_matched_d0_1_01_->Clone();
-  displaced_eff_acc_d0_1_01->SetName("eff_eta");
-  displaced_eff_acc_d0_1_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_d0_1_01->Divide(displaced_matched_d0_1_01_, displaced_tp_d0_1_01_, 1.0, 1.0, "B");
-  displaced_eff_acc_d0_1_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_d0_1_01->SetLineColor(kRed);
-  displaced_eff_acc_d0_1_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_1_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_1_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_d0_1_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_d0_1_01->Draw();
-
-  displaced_matched_d0_1_1_->Sumw2();
-  displaced_tp_d0_1_1_->Sumw2();
-  TH1F* displaced_eff_acc_d0_1_1 = (TH1F*)displaced_matched_d0_1_1_->Clone();
-  displaced_eff_acc_d0_1_1->SetName("eff_eta");
-  displaced_eff_acc_d0_1_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_d0_1_1->Divide(displaced_matched_d0_1_1_, displaced_tp_d0_1_1_, 1.0, 1.0, "B");
-  displaced_eff_acc_d0_1_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_d0_1_1->SetLineColor(kBlue);
-  displaced_eff_acc_d0_1_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_1_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_1_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_d0_1_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_d0_1_1->Draw("SAME");
-
-  displaced_matched_d0_45_01_->Sumw2();
-  displaced_tp_d0_45_01_->Sumw2();
-  TH1F* displaced_eff_acc_d0_45_01 = (TH1F*)displaced_matched_d0_45_01_->Clone();
-  displaced_eff_acc_d0_45_01->SetName("eff_eta");
-  displaced_eff_acc_d0_45_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_d0_45_01->Divide(displaced_matched_d0_45_01_, displaced_tp_d0_45_01_, 1.0, 1.0, "B");
-  displaced_eff_acc_d0_45_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_d0_45_01->SetLineColor(kGreen);
-  displaced_eff_acc_d0_45_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_45_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_45_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_d0_45_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  //displaced_eff_acc_d0_45_01->Draw("SAME");
-
-  displaced_matched_d0_45_1_->Sumw2();
-  displaced_tp_d0_45_1_->Sumw2();
-  TH1F* displaced_eff_acc_d0_45_1 = (TH1F*)displaced_matched_d0_45_1_->Clone();
-  displaced_eff_acc_d0_45_1->SetName("eff_eta");
-  displaced_eff_acc_d0_45_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_d0_45_1->Divide(displaced_matched_d0_45_1_, displaced_tp_d0_45_1_, 1.0, 1.0, "B");
-  displaced_eff_acc_d0_45_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_d0_45_1->SetLineColor(kMagenta);
-  displaced_eff_acc_d0_45_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_45_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_d0_45_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_d0_45_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  //displaced_eff_acc_d0_45_1->Draw("SAME");
-  
-  TLegend* legend2 = new TLegend(0.75, 0.75, 0.95, 0.95);
-  legend2->SetTextSize(0.0275); // Adjust text size
-  legend2->AddEntry(displaced_eff_acc_d0_1_01, "1 TeV, 30 mm", "l");
-  legend2->AddEntry(displaced_eff_acc_d0_1_1, "1 TeV, 300 mm", "l");
-  legend2->Draw();
-
-  c1->SaveAs("displaced_eff_acc_r_vertex_overlay.pdf");
-
-  displaced_matched_d0_1_01_->Sumw2();
-  displaced_mcp_d0_1_01_->Sumw2();
-  TH1F* displaced_eff_d0_1_01 = (TH1F*)displaced_matched_d0_1_01_->Clone();
-  displaced_eff_d0_1_01->SetName("eff_eta");
-  displaced_eff_d0_1_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_d0_1_01->Divide(displaced_matched_d0_1_01_, displaced_mcp_d0_1_01_, 1.0, 1.0, "B");
-  displaced_eff_d0_1_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_d0_1_01->SetLineColor(kRed);
-  displaced_eff_d0_1_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_1_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_1_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_d0_1_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_d0_1_01->Draw();
-
-  displaced_matched_d0_1_1_->Sumw2();
-  displaced_mcp_d0_1_1_->Sumw2();
-  TH1F* displaced_eff_d0_1_1 = (TH1F*)displaced_matched_d0_1_1_->Clone();
-  displaced_eff_d0_1_1->SetName("eff_eta");
-  displaced_eff_d0_1_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_d0_1_1->Divide(displaced_matched_d0_1_1_, displaced_mcp_d0_1_1_, 1.0, 1.0, "B");
-  displaced_eff_d0_1_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_d0_1_1->SetLineColor(kBlue);
-  displaced_eff_d0_1_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_1_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_1_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_d0_1_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_d0_1_1->Draw("SAME");
-
-  displaced_matched_d0_45_01_->Sumw2();
-  displaced_mcp_d0_45_01_->Sumw2();
-  TH1F* displaced_eff_d0_45_01 = (TH1F*)displaced_matched_d0_45_01_->Clone();
-  displaced_eff_d0_45_01->SetName("eff_eta");
-  displaced_eff_d0_45_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_d0_45_01->Divide(displaced_matched_d0_45_01_, displaced_mcp_d0_45_01_, 1.0, 1.0, "B");
-  displaced_eff_d0_45_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_d0_45_01->SetLineColor(kGreen);
-  displaced_eff_d0_45_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_45_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_45_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_d0_45_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  //displaced_eff_d0_45_01->Draw("SAME");
-
-  displaced_matched_d0_45_1_->Sumw2();
-  displaced_mcp_d0_45_1_->Sumw2();
-  TH1F* displaced_eff_d0_45_1 = (TH1F*)displaced_matched_d0_45_1_->Clone();
-  displaced_eff_d0_45_1->SetName("eff_eta");
-  displaced_eff_d0_45_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_d0_45_1->Divide(displaced_matched_d0_45_1_, displaced_mcp_d0_45_1_, 1.0, 1.0, "B");
-  displaced_eff_d0_45_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_d0_45_1->SetLineColor(kMagenta);
-  displaced_eff_d0_45_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_45_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_d0_45_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_d0_45_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  //displaced_eff_d0_45_1->Draw("SAME");
-  
-  legend2->Draw();
-
-  c1->SaveAs("displaced_eff_r_vertex_overlay.pdf");
-
-  displaced_matched_pt_1_01_->Sumw2();
-  displaced_tp_pt_1_01_->Sumw2();
-  TH1F* displaced_eff_acc_pt_1_01 = (TH1F*)displaced_matched_pt_1_01_->Clone();
-  displaced_eff_acc_pt_1_01->SetName("eff_eta");
-  displaced_eff_acc_pt_1_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_pt_1_01->Divide(displaced_matched_pt_1_01_, displaced_tp_pt_1_01_, 1.0, 1.0, "B");
-  displaced_eff_acc_pt_1_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_pt_1_01->SetLineColor(kRed);
-  displaced_eff_acc_pt_1_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_1_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_1_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_pt_1_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_pt_1_01->Draw();
-
-  displaced_matched_pt_1_1_->Sumw2();
-  displaced_tp_pt_1_1_->Sumw2();
-  TH1F* displaced_eff_acc_pt_1_1 = (TH1F*)displaced_matched_pt_1_1_->Clone();
-  displaced_eff_acc_pt_1_1->SetName("eff_eta");
-  displaced_eff_acc_pt_1_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_pt_1_1->Divide(displaced_matched_pt_1_1_, displaced_tp_pt_1_1_, 1.0, 1.0, "B");
-  displaced_eff_acc_pt_1_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_pt_1_1->SetLineColor(kBlue);
-  displaced_eff_acc_pt_1_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_1_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_1_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_pt_1_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_pt_1_1->Draw("SAME");
-
-  displaced_matched_pt_45_01_->Sumw2();
-  displaced_tp_pt_45_01_->Sumw2();
-  TH1F* displaced_eff_acc_pt_45_01 = (TH1F*)displaced_matched_pt_45_01_->Clone();
-  displaced_eff_acc_pt_45_01->SetName("eff_eta");
-  displaced_eff_acc_pt_45_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_pt_45_01->Divide(displaced_matched_pt_45_01_, displaced_tp_pt_45_01_, 1.0, 1.0, "B");
-  displaced_eff_acc_pt_45_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_pt_45_01->SetLineColor(kGreen);
-  displaced_eff_acc_pt_45_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_45_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_45_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_pt_45_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_pt_45_01->Draw("SAME");
-
-  displaced_matched_pt_45_1_->Sumw2();
-  displaced_tp_pt_45_1_->Sumw2();
-  TH1F* displaced_eff_acc_pt_45_1 = (TH1F*)displaced_matched_pt_45_1_->Clone();
-  displaced_eff_acc_pt_45_1->SetName("eff_eta");
-  displaced_eff_acc_pt_45_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_acc_pt_45_1->Divide(displaced_matched_pt_45_1_, displaced_tp_pt_45_1_, 1.0, 1.0, "B");
-  displaced_eff_acc_pt_45_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_acc_pt_45_1->SetLineColor(kMagenta);
-  displaced_eff_acc_pt_45_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_45_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_acc_pt_45_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_acc_pt_45_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_acc_pt_45_1->Draw("SAME");
-  
-  TLegend* legend3 = new TLegend(0.8, 0.8, 0.95, 0.95);
-  legend3->SetTextSize(0.0215); // Adjust text size
-  legend3->AddEntry(displaced_eff_acc_pt_1_01, "1 TeV, 30 mm", "l");
-  legend3->AddEntry(displaced_eff_acc_pt_1_1, "1 TeV, 300 mm", "l");
-  legend3->AddEntry(displaced_eff_acc_pt_45_01, "4.5 TeV, 30 mm", "l");
-  legend3->AddEntry(displaced_eff_acc_pt_45_1, "4.5 TeV, 300 mm", "l");
-  legend3->Draw();
-
-  c1->SaveAs("displaced_eff_acc_pt_overlay.pdf");
-
-  displaced_matched_pt_1_01_->Sumw2();
-  displaced_mcp_pt_1_01_->Sumw2();
-  TH1F* displaced_eff_pt_1_01 = (TH1F*)displaced_matched_pt_1_01_->Clone();
-  displaced_eff_pt_1_01->SetName("eff_eta");
-  displaced_eff_pt_1_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_pt_1_01->Divide(displaced_matched_pt_1_01_, displaced_mcp_pt_1_01_, 1.0, 1.0, "B");
-  displaced_eff_pt_1_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_pt_1_01->SetLineColor(kRed);
-  displaced_eff_pt_1_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_1_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_1_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_pt_1_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_pt_1_01->Draw();
-
-  displaced_matched_pt_1_1_->Sumw2();
-  displaced_mcp_pt_1_1_->Sumw2();
-  TH1F* displaced_eff_pt_1_1 = (TH1F*)displaced_matched_pt_1_1_->Clone();
-  displaced_eff_pt_1_1->SetName("eff_eta");
-  displaced_eff_pt_1_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_pt_1_1->Divide(displaced_matched_pt_1_1_, displaced_mcp_pt_1_1_, 1.0, 1.0, "B");
-  displaced_eff_pt_1_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_pt_1_1->SetLineColor(kBlue);
-  displaced_eff_pt_1_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_1_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_1_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_pt_1_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_pt_1_1->Draw("SAME");
-
-  displaced_matched_pt_45_01_->Sumw2();
-  displaced_mcp_pt_45_01_->Sumw2();
-  TH1F* displaced_eff_pt_45_01 = (TH1F*)displaced_matched_pt_45_01_->Clone();
-  displaced_eff_pt_45_01->SetName("eff_eta");
-  displaced_eff_pt_45_01->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_pt_45_01->Divide(displaced_matched_pt_45_01_, displaced_mcp_pt_45_01_, 1.0, 1.0, "B");
-  displaced_eff_pt_45_01->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_pt_45_01->SetLineColor(kGreen);
-  displaced_eff_pt_45_01->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_45_01->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_45_01->SetLineWidth(2); // Set line width to 3
-  displaced_eff_pt_45_01->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_pt_45_01->Draw("SAME");
-
-  displaced_matched_pt_45_1_->Sumw2();
-  displaced_mcp_pt_45_1_->Sumw2();
-  TH1F* displaced_eff_pt_45_1 = (TH1F*)displaced_matched_pt_45_1_->Clone();
-  displaced_eff_pt_45_1->SetName("eff_eta");
-  displaced_eff_pt_45_1->GetYaxis()->SetTitle("Efficiency");
-  displaced_eff_pt_45_1->Divide(displaced_matched_pt_45_1_, displaced_mcp_pt_45_1_, 1.0, 1.0, "B");
-  displaced_eff_pt_45_1->SetAxisRange(0, 1.1, "Y");
-  displaced_eff_pt_45_1->SetLineColor(kMagenta);
-  displaced_eff_pt_45_1->GetXaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_45_1->GetYaxis()->SetTitleSize(0.05);
-  displaced_eff_pt_45_1->SetLineWidth(2); // Set line width to 3
-  displaced_eff_pt_45_1->SetMarkerSize(1.5); // Set marker size to 1.5
-  displaced_eff_pt_45_1->Draw("SAME");
-  
-  legend3->Draw();
-
-  c1->SaveAs("displaced_eff_pt_overlay.pdf");
-
-
-
   std::cout << "---------------------------------------" << "\n";
   std::cout << "--------   SAMPLE SUMMARY     ---------" << "\n";
   std::cout << "---------------------------------------" << "\n";
@@ -1731,8 +1276,289 @@ const TString fileName
   std::cout << "numRecoableDisplacedParticles: " << numRecoableDisplacedParticles << "\n";
   std::cout << "numMatchedDisplacedTracks: " << numMatchedDisplacedTracks << "\n";
   std::cout << "total displaced tracking efficiency: " << float(numMatchedDisplacedTracks) / float(numRecoableDisplacedParticles) << "\n";
-  
-}
+  }
+
+
+  void overlayMultipleSamples(std::vector<TString> fileNames){
+
+  //////////////////////////////////////////
+  /// overlay multiple sample histograms ///
+  //////////////////////////////////////////
+
+  int colorCounter = 1;
+
+  TCanvas* cTrackD0 = new TCanvas("cTrackD0", "Overlayed Histograms", 800, 600);
+  cTrackD0->SetLogy();
+  TCanvas* cTrackPt = new TCanvas("cTrackPt", "Overlayed Histograms", 800, 600);
+  TCanvas* cNHits = new TCanvas("cNHits", "Overlayed Histograms", 800, 600);
+  TCanvas* cChi2R = new TCanvas("cChi2R", "Overlayed Histograms", 800, 600);
+  TCanvas* cResZ0 = new TCanvas("cResZ0", "Overlayed Histograms", 800, 600);
+  TCanvas* cResD0 = new TCanvas("cResD0", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffAccD0 = new TCanvas("cEffAccD0", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffD0 = new TCanvas("cEffD0", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffAccRXY = new TCanvas("cEffAccRXY", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffRXY = new TCanvas("cEffRXY", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffAccPt = new TCanvas("cEffAccPt", "Overlayed Histograms", 800, 600);
+  TCanvas* cEffPt = new TCanvas("cEffPt", "Overlayed Histograms", 800, 600);
+
+
+  TLegend* legendLog = new TLegend(0.5, 0.7, 0.95, 0.95);
+  legendLog->SetTextSize(0.03); // Adjust text size
+  TLegend* legend1 = new TLegend(0.5, 0.7, 0.95, 0.95);
+  legend1->SetTextSize(0.03); // Adjust text size
+  TLegend* legend2 = new TLegend(0.55, 0.75, 0.95, 0.95);
+  legend2->SetTextSize(0.0275); // Adjust text size
+  TLegend* legend3 = new TLegend(0.6, 0.8, 0.95, 0.95);
+  legend3->SetTextSize(0.0215); // Adjust text size
+  for (TString fileName : fileNames){
+
+    TString dir = "Plots_" + fileName + "";
+    gSystem->mkdir(dir);
+    TString DIR = dir + "/";
+    TString OverlayDIR = "OverlayedPlots" + massPoint + "/";
+    gSystem->mkdir(OverlayDIR);
+
+    cTrackD0->cd();
+
+    // Draw histograms on the same canvas
+    displaced_track_d0_map[fileName]->SetLineColor(colorCounter);
+    displaced_track_d0_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_track_d0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_track_d0_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_track_d0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    displaced_track_d0_map[fileName]->SetMaximum(240);
+
+    if (colorCounter == 1) displaced_track_d0_map[fileName]->Draw("HIST");
+    else displaced_track_d0_map[fileName]->Draw("HIST SAME");
+
+    legendLog->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " entries", "l");
+    legendLog->Draw();
+    if (colorCounter == fileNames.size()) cTrackD0->SaveAs(OverlayDIR + "displaced_track_d0_overlay.pdf");
+    
+    cTrackPt->cd();
+    // Draw histograms on the same canvas
+    displaced_track_pt_map[fileName]->SetLineColor(colorCounter);
+    displaced_track_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_track_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_track_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_track_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) displaced_track_pt_map[fileName]->Draw("HIST");
+    else displaced_track_pt_map[fileName]->Draw("HIST SAME");
+
+    legend1->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " entries", "l");
+
+    // Save canvas
+    if (colorCounter == fileNames.size()){
+      legend1->Draw();
+      cTrackPt->SaveAs(OverlayDIR + "displaced_track_pt_overlay.pdf");
+    } 
+
+    cNHits->cd();
+    // Draw histograms on the same canvas
+    displaced_nhits_map[fileName]->SetLineColor(colorCounter);
+    displaced_nhits_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_nhits_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_nhits_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_nhits_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) displaced_nhits_map[fileName]->Draw("HIST");
+    else displaced_nhits_map[fileName]->Draw("HIST SAME");
+
+    
+    if (colorCounter == fileNames.size()){
+      legend1->Draw();
+      cNHits->SaveAs(OverlayDIR + "displaced_track_nhits_overlay.pdf");
+    } 
+
+    cChi2R->cd();
+    // Draw histograms on the same canvas
+    displaced_chi2_reduced_map[fileName]->SetLineColor(colorCounter);
+    displaced_chi2_reduced_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_chi2_reduced_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_chi2_reduced_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_chi2_reduced_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) displaced_chi2_reduced_map[fileName]->Draw("HIST");
+    else displaced_chi2_reduced_map[fileName]->Draw("HIST SAME");
+
+    if (colorCounter == fileNames.size()){
+      legend1->Draw();
+      cChi2R->SaveAs(OverlayDIR + "displaced_track_chi2red_overlay.pdf");
+    } 
+
+
+    cResZ0->cd();
+    displaced_resz0_map[fileName]->SetLineColor(colorCounter);
+    displaced_resz0_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_resz0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_resz0_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_resz0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) displaced_resz0_map[fileName]->Draw("HIST");
+    else displaced_resz0_map[fileName]->Draw("HIST SAME");
+    
+    if (colorCounter == fileNames.size()){
+      legend1->Draw();
+      cResZ0->SaveAs(OverlayDIR + "displaced_resz0_overlay.pdf");
+    } 
+
+    cResD0->cd();
+    displaced_resd0_map[fileName]->SetLineColor(colorCounter);
+    displaced_resd0_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_resd0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_resd0_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_resd0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    displaced_resd0_map[fileName]->SetMaximum(400);
+
+    if (colorCounter == 1) displaced_resd0_map[fileName]->Draw("HIST");
+    else displaced_resd0_map[fileName]->Draw("HIST SAME");
+
+    if (colorCounter == fileNames.size()){
+      legend1->Draw();
+      cResD0->SaveAs(OverlayDIR + "displaced_resd0_overlay.pdf");
+    } 
+
+
+    // efficiency vs. d0
+    cEffAccD0->cd();
+    displaced_matched_d0_map[fileName]->Sumw2();
+    displaced_tp_d0_map[fileName]->Sumw2();
+    displaced_eff_acc_d0_map[fileName] = (TH1F*)displaced_matched_d0_map[fileName]->Clone();
+    displaced_eff_acc_d0_map[fileName]->SetName("eff_eta");
+    displaced_eff_acc_d0_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_acc_d0_map[fileName]->Divide(displaced_matched_d0_map[fileName], displaced_tp_d0_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_acc_d0_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_acc_d0_map[fileName]->SetLineColor(colorCounter);
+    displaced_eff_acc_d0_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_d0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_d0_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_acc_d0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_acc_d0_map[fileName]->Draw("HIST");
+    else displaced_eff_acc_d0_map[fileName]->Draw("HIST SAME");
+    
+    legend2->AddEntry(displaced_eff_acc_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_eff_acc_d0_map[fileName]->GetEntries())) + " entries", "l");
+    
+    if (colorCounter == fileNames.size()){
+      legend2->Draw();
+      cEffAccD0->SaveAs(OverlayDIR + "displaced_eff_acc_d0_overlay.pdf");
+    } 
+
+    cEffD0->cd();
+    displaced_matched_d0_map[fileName]->Sumw2();
+    displaced_mcp_d0_map[fileName]->Sumw2();
+    displaced_eff_d0_map[fileName] = (TH1F*)displaced_matched_d0_map[fileName]->Clone();
+    displaced_eff_d0_map[fileName]->SetName("eff_eta");
+    displaced_eff_d0_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_d0_map[fileName]->Divide(displaced_matched_d0_map[fileName], displaced_mcp_d0_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_d0_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_d0_map[fileName]->SetLineColor(colorCounter);
+    displaced_eff_d0_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_d0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_d0_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_d0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_d0_map[fileName]->Draw("HIST");
+    else displaced_eff_d0_map[fileName]->Draw("HIST SAME");
+    
+    if (colorCounter == fileNames.size()){
+      legend2->Draw();
+      cEffD0->SaveAs(OverlayDIR + "displaced_eff_d0_overlay.pdf");
+    } 
+
+    cEffAccRXY->cd();
+    // efficiency vs. rxy
+    displaced_matched_rxy_map[fileName]->Sumw2();
+    displaced_tp_rxy_map[fileName]->Sumw2();
+    displaced_eff_acc_rxy_map[fileName] = (TH1F*)displaced_matched_rxy_map[fileName]->Clone();
+    displaced_eff_acc_rxy_map[fileName]->SetName("eff_eta");
+    displaced_eff_acc_rxy_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_acc_rxy_map[fileName]->Divide(displaced_matched_rxy_map[fileName], displaced_tp_rxy_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_acc_rxy_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_acc_rxy_map[fileName]->SetLineColor(colorCounter);
+    displaced_eff_acc_rxy_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_rxy_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_rxy_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_acc_rxy_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_acc_rxy_map[fileName]->Draw("HIST");
+    else displaced_eff_acc_rxy_map[fileName]->Draw("HIST SAME");
+    
+   
+    if (colorCounter == fileNames.size()){
+      legend2->Draw();
+      cEffAccRXY->SaveAs(OverlayDIR + "displaced_eff_acc_rxy_overlay.pdf");
+    } 
+
+    cEffRXY->cd();
+    displaced_matched_rxy_map[fileName]->Sumw2();
+    displaced_mcp_rxy_map[fileName]->Sumw2();
+    displaced_eff_rxy_map[fileName] = (TH1F*)displaced_matched_rxy_map[fileName]->Clone();
+    displaced_eff_rxy_map[fileName]->SetName("eff_eta");
+    displaced_eff_rxy_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_rxy_map[fileName]->Divide(displaced_matched_rxy_map[fileName], displaced_mcp_rxy_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_rxy_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_rxy_map[fileName]->SetLineColor(colorCounter);
+    displaced_eff_rxy_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_rxy_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_rxy_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_rxy_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_rxy_map[fileName]->Draw("HIST");
+    else displaced_eff_rxy_map[fileName]->Draw("HIST SAME");
+    
+    if (colorCounter == fileNames.size()){
+      legend2->Draw();
+      cEffRXY->SaveAs(OverlayDIR + "displaced_eff_rxy_overlay.pdf");
+    } 
+
+    cEffAccPt->cd();
+    displaced_matched_pt_map[fileName]->Sumw2();
+    displaced_tp_pt_map[fileName]->Sumw2();
+    displaced_eff_acc_pt_map[fileName] = (TH1F*)displaced_matched_pt_map[fileName]->Clone();
+    displaced_eff_acc_pt_map[fileName]->SetName("eff_eta");
+    displaced_eff_acc_pt_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_acc_pt_map[fileName]->Divide(displaced_matched_pt_map[fileName], displaced_tp_pt_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_acc_pt_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_acc_pt_map[fileName]->SetLineColor(colorCounter);
+    displaced_eff_acc_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_acc_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_acc_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw("HIST");
+    else displaced_eff_acc_pt_map[fileName]->Draw("HIST SAME");
+
+    legend3->AddEntry(displaced_eff_acc_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_eff_acc_pt_map[fileName]->GetEntries())) + " entries", "l");
+    
+    if (colorCounter == fileNames.size()){
+      legend3->Draw();
+      cEffAccPt->SaveAs(OverlayDIR + "displaced_eff_acc_pt_overlay.pdf");
+    } 
+
+    cEffPt->cd();
+    displaced_matched_pt_map[fileName]->Sumw2();
+    displaced_mcp_pt_map[fileName]->Sumw2();
+    displaced_eff_pt_map[fileName] = (TH1F*)displaced_matched_pt_map[fileName]->Clone();
+    displaced_eff_pt_map[fileName]->SetName("eff_eta");
+    displaced_eff_pt_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    displaced_eff_pt_map[fileName]->Divide(displaced_matched_pt_map[fileName], displaced_mcp_pt_map[fileName], 1.0, 1.0, "B");
+    displaced_eff_pt_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    displaced_eff_pt_map[fileName]->SetLineColor(kRed);
+    displaced_eff_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    displaced_eff_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_eff_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    displaced_eff_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw("HIST");
+    else displaced_eff_acc_pt_map[fileName]->Draw("HIST SAME");
+
+    if (colorCounter == fileNames.size()){
+      legend3->Draw();
+      cEffPt->SaveAs(OverlayDIR + "displaced_eff_pt_overlay.pdf");
+    } 
+    colorCounter++; 
+    }
+  }
 
 // Declare helper functions 
 void SetPlotStyle() {
@@ -1816,4 +1642,19 @@ bool isApproximatelyEqualToAny(const std::vector<float>& vec, float value, float
         }
     }
     return false;
+}
+
+void callRootAnalyzer(){
+  std::vector<TString> fileNames;
+  if (massPoint == "1TeV") fileNames = {"1000_0.1", "1000_1", "1000_10"};
+  if (massPoint == "2.5TeV") fileNames = {"2500_0.1", "2500_1", "2500_10"};
+  if (massPoint == "4TeV") fileNames = {"4000_0.1", "4000_1", "4000_10"};
+  if (massPoint == "4.5TeV") fileNames = {"4500_0.1", "4500_1", "4500_10"};
+
+  initialize_histograms(fileNames);
+  for (int i = 0; i < fileNames.size(); i++){
+    std::cout << "fileNames[i]: " << fileNames[i];
+    rootAnalyzer(fileNames[i]);
+  }
+  overlayMultipleSamples(fileNames);
 }

@@ -5,6 +5,7 @@ import json
 from math import *
 import numpy as np
 import uproot
+import time
 
 # ############## SETUP #############################
 # Prevent ROOT from drawing while you're running -- good for slow remote servers
@@ -56,8 +57,10 @@ def acceptanceCutsDisplaced(mcp):
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
 base_path = "/home/larsonma/MarkLLPCode/reco/"
 input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
-sampleNames = ["1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
+sampleNames = ["2500_0.1", "2500_1", "2500_10", "4000_0.1", "4000_1", "4000_10", "1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
 #sampleNames = ["1000_0.1"]
+#sampleNames = ["2500_10"]
+#sampleNames = ["4000_0.1_407ev_2"]
 # Loop over sample names to construct file paths
 for sample in sampleNames:
     # Use glob to get the file paths
@@ -380,6 +383,12 @@ for sample in sampleNames:
         reader.open(f)
         for ievt,event in enumerate(reader): 
             if max_events > 0 and i >= max_events: break
+            if (f == "4000_1" and i >= 500):
+                break
+            if (f == "2500_10" and i >= 419):
+                break
+            
+            print("event:", i)
             #if i%10 == 0: 
             #print("Processing event %i."%i)
 
@@ -503,6 +512,8 @@ for sample in sampleNames:
             # Loop over the truth objects and fill histograms
             #print("len si tracks refitted: ", len(trackCollection))
             #print("len original mcp collec, and merged mcp collection: ", len(mcpCollection)), #len(mergedMcpCollection))
+            #print("len(mcp):", len(mcpCollection))
+            time_before_mcp = time.time()
             for mcp in mcpCollection:
 
                 mcp_p = mcp.getMomentum()
@@ -717,7 +728,7 @@ for sample in sampleNames:
 
                                     daughter_d0 = prod_xy*sin(dPhi)
                                     dTheta = mcp_daughterDaughter_tlv.Theta() -  mcp_tlv.Theta()
-                                    daughter_z0 = (prod_xyz) * sin(dTheta) # change to rz vertex_z + prod_rz * sin(dtheta)
+                                    daughter_z0 = (prod_xyz) * sin(dTheta) 
                                     
                                     mcp_daughter_d0_rt.push_back(daughter_d0)
                                     mcp_daughter_z0_rt.push_back(daughter_z0)
@@ -819,7 +830,8 @@ for sample in sampleNames:
                                     mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
                                 
                     ### FIXME add another recursion to account for pi0 decay products? kaon decay products? FIX daughterHasTrack bool 
-
+            time_after_mcp = time.time()
+            #print(f"Time taken in mcp loop: {time_after_mcp - time_before_mcp:.4f} seconds")
             mcp_tree.Fill() ### FILL FOR EACH EVENT!
             mcp_pt_rt.clear() ### Clear each variable after so when filling later don't double count
             mcp_eta_rt.clear()
