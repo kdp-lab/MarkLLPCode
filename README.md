@@ -15,6 +15,12 @@ Note: need to be sourced to cvmfs to compile, and need to export MARLIN_DLL each
 ```bash
 
 git clone git@github.com:madbaron/MyBIBUtils.git
+
+```
+
+After cloning, to fix a small issue with MyBibUtils/src/HitSlimmer.cc, change 'itHit' to 'jitHit' on line 169 
+
+```bash
 cd MyBIBUtils
 mkdir build
 cd build
