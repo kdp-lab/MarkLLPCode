@@ -6,7 +6,7 @@ import re
 
 # Define the run_marlin function within the script
 def run_marlin(input_file, bib, reco, output_directory):
-    base_dir = "/home/larsonma/MarkLLPCode"
+    base_dir = "/scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode"
     if reco:
         steering_file = f"{base_dir}/mucoll-benchmarks/reconstruction/marlin/reco_steer.xml"
         default_output_dir = f"{base_dir}/reco_Hbb{'_bib' if bib else ''}"
@@ -51,7 +51,8 @@ if __name__ == "__main__":
     parser.add_argument("input_files", nargs="+", help="List of input files for processing.")
     parser.add_argument("-b", "--bib", action='store_true', help="Use the BIB overlay.", default=False)
     parser.add_argument("-r", "--reco", action='store_true', help="Run reconstruction instead of digitisation.", default=False)
-    parser.add_argument("-o", "--output_directory", help="Output directory for task results.", default= "/local/d1/mu+mu-/digi_v3/notimingrequirement")
+    #parser.add_argument("-o", "--output_directory", help="Output directory for task results.", default= "/local/d1/mu+mu-/digi_v3/notimingrequirement")
+    parser.add_argument("-o", "--output_directory", help="Output directory for task results.", default= "/scratch/larsonma/tutorial2024/LLPStudies/digi_osg_v2")
     parser.add_argument("-j", "--ncpu", help="Number of CPU cores to use.", type=int, default=1)
     args = parser.parse_args()
 
@@ -65,6 +66,8 @@ if __name__ == "__main__":
     else:
         base_directory = "/local/d1/mu+mu-/sim_v3"
         output_directory = "/local/d1/mu+mu-/digi_v3/notimingrequirement"
+        #base_directory = "/scratch/larsonma/tutorial2024/LLPStudies/sim_osg_v2"
+        #output_directory = "/scratch/larsonma/tutorial2024/LLPStudies/digi_osg_v2"
 
     if args.output_directory != "/local/d1/mu+mu-/digi":
         output_directory = args.output_directory

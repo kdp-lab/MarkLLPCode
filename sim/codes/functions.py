@@ -22,9 +22,10 @@ def extract_params(filename):
     return mass, width, lifetime
 
 
-def generate_modified_tbl(mass, lifetime, width):
-    input_tbl_file = "/local/d1/lrozanov/mucoll-tutorial-2023/sim_Hbb/tbl_files/example.tbl"
-    output_tbl_file = f"tbl_files/{mass:.0f}GeV_{lifetime:.0f}mm.tbl"
+def generate_modified_tbl(mass, lifetime, width, filename):
+    mass_lifetime = os.path.splitext(os.path.basename(filename))[0]  # Remove file extension
+    input_tbl_file = "/scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/sim/example.tbl"
+    output_tbl_file = f"tbl_files/{mass_lifetime}.tbl"
     
     # Check if the output directory exists
     output_dir = os.path.dirname(output_tbl_file)
@@ -86,7 +87,7 @@ def generate_modified_tbl(mass, lifetime, width):
 
     return output_tbl_file
 
-def run_ddsim(input_file, output_directory, tbl_file, number_of_events):
+def run_ddsim(input_file, output_directory, tbl_file, number_of_events, skipEvents):
     # Extracting the filename without extension
     input_filename = os.path.splitext(os.path.basename(input_file))[0]
     if f"{input_filename}_sim.slcio" in os.listdir(output_directory):
@@ -96,7 +97,7 @@ def run_ddsim(input_file, output_directory, tbl_file, number_of_events):
     command = [
         "ddsim",
         "--steeringFile",
-        "/home/larsonma/MarkLLPCode/mucoll-benchmarks/simulation/ilcsoft/steer_baseline.py",
+        "/scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/mucoll-benchmarks/simulation/ilcsoft/steer_baseline.py",
         "--inputFile",
         input_file,
         "--physics.pdgfile",
@@ -107,5 +108,6 @@ def run_ddsim(input_file, output_directory, tbl_file, number_of_events):
     ]
     if number_of_events > 0:
         command += ["--numberOfEvents", f"{number_of_events}"]
-        
+        command += ["--skipNEvents", f"{skipEvents}"]
+
     subprocess.run(command)
