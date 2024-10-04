@@ -15,7 +15,7 @@ ROOT.gROOT.SetBatch()
 max_events = -1 # Set to -1 to run over all events
 
 # Gather input files
-fnames = glob.glob("/home/larsonma/TestingOutputs/sim_1000/1000_1_sim.slcio") 
+fnames = glob.glob("/home/larsonma/MarkLLPCode/sim/2500_0.1_sim.slcio") 
 print("Found %i files."%len(fnames))
 
 # Create empty lists for each variable
@@ -160,10 +160,6 @@ data_list["prod_time"] = prod_time
 data_list["id"] = id
 
 # After the loop is finished, save the data_list to a .json file
-output_json = "/home/larsonma/TestingOutputs/sim_1000/1000_1_sim.json"
+output_json = "/home/larsonma/MarkLLPCode/sim/2500_0.1_sim.json"
 with open(output_json, 'w') as fp:
     json.dump(data_list, fp)
-
-
-
-

@@ -13,8 +13,8 @@ import time
 ROOT.gROOT.SetBatch()
 
 # Set up some options, constants
-max_events = 1000 # Set to -1 to run over all events
-Bfield = 5 #T, 3.57 for legacy
+max_events = 100 # Set to -1 to run over all events
+Bfield = 3.57 #T, 3.57 for legacy
 
 def check_hard_radiation(mcp, fractional_threshold):
     had_hard_rad = False
@@ -45,7 +45,7 @@ def acceptanceCutsDisplaced(mcp):
     #print("r_vertex, r_endpoint:", r_vertex, r_endpoint)
     z_vertex = mcp.getVertex()[2]
     z_endpoint = mcp.getEndpoint()[2]
-    if r_vertex < 553.0 and r_endpoint > 1486.0: # produced within itk, decay outside ot
+    if r_vertex < 553.0 and r_endpoint > 1486.0: # produced within it, decay outside ot
         reconstructable = True
         #print("displaced product is reconstructable, with z_vertex, endpoint of:", z_vertex, z_endpoint)
     else:
@@ -56,11 +56,18 @@ def acceptanceCutsDisplaced(mcp):
 # Gather input files
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
 base_path = "/home/larsonma/MarkLLPCode/reco/"
-input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
-sampleNames = ["2500_0.1", "2500_1", "2500_10", "4000_0.1", "4000_1", "4000_10", "1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
-#sampleNames = ["1000_0.1"]
-#sampleNames = ["2500_10"]
-#sampleNames = ["4000_0.1_407ev_2"]
+#input_path = "/local/d1/mu+mu-/reco_v3/osg_test/"
+#input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
+input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
+#input_path = "/home/larsonma/"
+#sampleNames = ["2500_0.1", "2500_1", "2500_10", "4000_0.1", "4000_1", "4000_10", "1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
+#sampleNames = ["1000_0.1", "1000_1", "2500_0.1", "2500_1", "2500_10", "4000_0.1", "4500_0.1"]
+#sampleNames = ["4000_0.1", "4000_1", "4000_10", "4500_0.1", "4500_1", "4500_10"]
+#sampleNames = ["bib"]
+sampleNames = ["4000_10_bib_nocut", "4500_10_bib_nocut"]
+#sampleNames = ["2500_1"]
+#sampleNames = ["2500_0.1_simosg", "2500_1_simosg", "4000_0.1_simosg", "4500_0.1_simosg"]
+#sampleNames = ["4500_10_timext"]
 # Loop over sample names to construct file paths
 for sample in sampleNames:
     # Use glob to get the file paths
@@ -383,10 +390,6 @@ for sample in sampleNames:
         reader.open(f)
         for ievt,event in enumerate(reader): 
             if max_events > 0 and i >= max_events: break
-            if (f == "4000_1" and i >= 500):
-                break
-            if (f == "2500_10" and i >= 419):
-                break
             
             print("event:", i)
             #if i%10 == 0: 
@@ -394,10 +397,10 @@ for sample in sampleNames:
 
             # Print all the collection names in the event
             collection_names = event.getCollectionNames()
-            #if (ievt == 0):
-            #    print("COLLECTION NAMES: ")
-            #    for name in collection_names:
-            #        print(name)
+            if (ievt == 0):
+                print("COLLECTION NAMES: ")
+                for name in collection_names:
+                    print(name)
             
 
             #has_pfo_stau = False
@@ -410,6 +413,7 @@ for sample in sampleNames:
             mcpCollection = event.getCollection("MCParticle")
             trackCollection = event.getCollection("SiTracks_Refitted") ### NOTE use SiTracks_Refitted
             hitsCol = event.getCollection("HitsCollection")
+            print("len hits col:", len(hitsCol))
             slimmedHitsCol = event.getCollection("SlimmedHitsCollection")
 
             hit_collections = []
@@ -475,7 +479,7 @@ for sample in sampleNames:
                 try:
                     collection = event.getCollection(coll_name)
                     for hit in collection:
-                        # print("hit",collection.getTypeName(), collection.getParameters())
+                        #print("hit",collection.getTypeName(), collection.getParameters())
                         position = hit.getPosition()
                         r = sqrt(position[0] ** 2 + position[1] ** 2)
                         #print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
@@ -503,10 +507,13 @@ for sample in sampleNames:
                             
                 except Exception as e:
                     print(f"Error accessing {coll_name}: {e}")   # Storing this to use for matching in the next loop
-            #for slimHit in slimmedHitsCol:
-            #    position = slimHit.getPosition()
-            #    r = sqrt(position[0] ** 2 + position[1] ** 2)
+            for slimHit in slimmedHitsCol:
+                position = slimHit.getPosition()
+                r = sqrt(position[0] ** 2 + position[1] ** 2)
                 #print("slimmed hit pos_x, pos_y, pos_r, pos_z:", position[0], position[1], r, position[2]) 
+                mcp = hit.getMCParticle()
+                hit_pdg = mcp.getPDG() if mcp else None
+                #print("slimmed hit pdg:", hit_pdg)
             ### perform truth association 
 
             # Loop over the truth objects and fill histograms
@@ -636,7 +643,7 @@ for sample in sampleNames:
                                 nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
                                 #print("LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits:", LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits)
                                 if (nTotalHits < 3.5): # account for if 1 part of vertex doublet misses hit
-                                    #print("doesn't pass nhits cut, skip stau track")
+                                    print("doesn't pass nhits cut, skip stau track")
                                     continue 
                                 
                                 theta = np.pi/2- np.arctan(track.getTanLambda())
@@ -682,7 +689,7 @@ for sample in sampleNames:
 
                     mcp_stau_track_bool_rt.push_back(stauHasTrack)
                     mcp_stau_track_reconstructable_bool_rt.push_back(stau_reconstructable)
-                    #print("truth stau d0, z0, has matched track: ", stau_d0, stau_z0, stauHasTrack) ### end mcp loop 
+                    #print("truth stau d0, z0, event has matched track: ", stau_d0, stau_z0, stauHasTrack, i) ### end mcp loop 
 
 
                     ### START LOOP THROUGH STAU DAUGHTER PARTICLES
@@ -758,12 +765,23 @@ for sample in sampleNames:
                                             if (len(tracks) > 1):
                                                 num_dupes += 1 
                                         for track in tracks:
+                                            mcpsForTrack = lcRelation.getRelatedFromObjects(track)
+                                            #print("len(mcps for this displaced track):", len(mcpsForTrack))
+                                            #for mcpTrk in mcpsForTrack:
+                                            #    print("pdgid associated to track: ", mcpTrk.getPDG())
+                                            
                                             LC_pixel_nhit = 0
                                             LC_inner_nhit = 0
                                             LC_outer_nhit = 0
                                             lastLayer = -1
                                             nLayersCrossed = 0
                                             for hit in track.getTrackerHits():
+                                                position = hit.getPosition()
+                                                #print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
+                                                # Retrieve the MCParticle and its PDG code
+                                                #mcp = hit.getMCParticle()
+                                                #hit_pdg = mcp.getPDG() if mcp else None
+                                                #print("hit pdg:", hit_pdg)
                                             # now decode hits
                                                 encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
                                                 decoder = pyLCIO.UTIL.BitField64(encoding)
@@ -784,7 +802,7 @@ for sample in sampleNames:
                                                 lastLayer = layer
                                             nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
                                             if (nTotalHits < 3.5 or nLayersCrossed < 3.5):
-                                                #print("doesn't pass nhits cut, skip daughter 2 track")
+                                                print("doesn't pass nhits cut, skip daughter 2 track")
                                                 continue 
                                             theta = np.pi/2- np.arctan(track.getTanLambda())
                                             phi = track.getPhi()
@@ -794,10 +812,14 @@ for sample in sampleNames:
                                             track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
                                             dr = mcp_daughterDaughter_tlv.DeltaR(track_tlv)
                                             nhitz = track.getTrackerHits().size()
-                                            #print("nhitz: ", nhitz)
+                                            print("nhitz: ", nhitz)
                                             ptres = abs(mcp_daughterDaughter_tlv.Perp() - pt) / (mcp_daughterDaughter_tlv.Perp())
                                             d0 = track.getD0()
                                             z0 = track.getZ0()
+                                            print("omega, displaced sig_omega", track.getOmega(), sqrt(track.getCovMatrix()[5]))
+                                            ptuncertainty = (0.2998 * Bfield / 1000. ) *sqrt(track.getCovMatrix()[5])/(track.getOmega() ** 2)
+                                            print("displaced pt, pt uncertainty:", pt, ptuncertainty)
+                                            print("matched displaced pt:", mcp_daughterDaughter_tlv.Perp())
                                             LC_daughter_pt_match_rt.push_back(mcp_daughterDaughter_tlv.Perp())
                                             LC_daughter_track_pt_rt.push_back(pt)
                                             LC_daughter_track_eta_rt.push_back(eta)
@@ -823,8 +845,8 @@ for sample in sampleNames:
                                             LC_daughter_pixel_nhits_rt.push_back(LC_pixel_nhit)
                                             LC_daughter_inner_nhits_rt.push_back(LC_inner_nhit)
                                             LC_daughter_outer_nhits_rt.push_back(LC_outer_nhit)
-                                            #print("found matched second daughter track")
-                                            #print("--------------------------------")
+                                            print("found matched second daughter track for event:", i)
+                                            print("--------------------------------")
                                             num_matched_daughter_tracks += 1
                                     mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
                                     mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
@@ -975,27 +997,41 @@ for sample in sampleNames:
                     hit_side_rt.push_back(side)
                     lastLayer = layer
                 if(nLayersCrossed < 3.5):
-                    #print("track did not pass n layers / n hits cut")
+                    print("track did not pass n layers / n hits cut")
                     continue
                 track_mcps = lcRelation.getRelatedFromObjects(track)
                 if len(track_mcps) < 1:
-                    #print("unassociated fake track")
+                    print("unassociated fake track")
                     num_unassociated_fake_tracks += 1
                     num_fake_tracks += 1
                     isFakeTrack = True
                 if len(track_mcps) > 1: 
                     pdg_ids = [mcp.getPDG() for mcp in track_mcps]
-                    #print("fake pdgids?:", pdg_ids)
+                    print("fake pdgids?:", pdg_ids)
+                    if abs(mcp.getPDG())==1000015 or abs(mcp.getPDG())==2000015:
+                        print("stau associated to fake track")
+                    fakeParents = mcp.getParents()
+                    for fakeParent in fakeParents:
+                        if abs(fakeParent.getPDG()) == 15:
+                            print("daughter of tau (potentially stau)")
+
                     # Check if all PDG IDs are the same
+                    
+                        
                     if len(set(pdg_ids)) > 1: ### filter if particles decaying into another
                         if (len(track_mcps) == 2 and (track_mcps[1] in track_mcps[0].getDaughters() or track_mcps[1] in track_mcps[0].getParents())):
                             isFakeTrack = False
-                            #print("not truly fake track")
+                            print("not truly fake track")
                         else:
+                            isFakeTrack = True
                             num_mult_particles_fake_tracks += 1
                             num_fake_tracks += 1
-                            isFakeTrack = True
-                            #print("fake track with pdgids:", pdg_ids)
+                            if len(set(pdg_ids)) == 1 and (abs(pdg_ids[0]) in {100015, 200015}):
+                                isFakeTrack = False
+                                num_mult_particles_fake_tracks -= 1
+                                num_fake_tracks -= 1 ## FIXME fix logic here
+                            
+                            print("fake track with pdgids:", pdg_ids)
                     
                 if isFakeTrack: ### FAKE TRACK (NO MCPS RELATED)
                     theta = np.pi/2- np.arctan(track.getTanLambda())
@@ -1007,6 +1043,18 @@ for sample in sampleNames:
                     nhitz = track.getTrackerHits().size()
                     d0 = track.getD0()
                     z0 = track.getZ0()
+                    #if (abs(track.getChi2() / float(track.getNdf()))) > 3.0 or (pt < 100.0):
+                    #    if (abs(track.getChi2() / float(track.getNdf()))) > 3.0:
+                    #        print("fake didn't pass chi^2 cut")
+                    #    if (pt < 100.0):
+                    #        print("fake didn't pass pt cut")
+                    #    continue
+                    
+                    #print("omega, fake sig_omega", track.getOmega(), sqrt(track.getCovMatrix()[5]))
+                    #ptuncertainty = (0.2998 * Bfield / 1000. ) *sqrt(track.getCovMatrix()[5])/(track.getOmega() ** 2)
+                    #print("fake pt, pt uncertainty:", pt, ptuncertainty)
+
+                    fake_phi_rt.push_back(phi)
                     fake_pt_rt.push_back(pt)
                     fake_eta_rt.push_back(eta)
                     fake_theta_rt.push_back(theta)
@@ -1060,23 +1108,7 @@ for sample in sampleNames:
                     fake_pixel_nhits_rt.push_back(LC_pixel_nhit)
                     fake_inner_nhits_rt.push_back(LC_inner_nhit)
                     fake_outer_nhits_rt.push_back(LC_outer_nhit)
-                    fake_track_tree.Fill() 
-                    fake_pt_rt.clear()     
-                    fake_eta_rt.clear()
-                    fake_theta_rt.clear()
-                    fake_ndf_rt.clear()
-                    fake_chi2_rt.clear()
-                    fake_chi2_reduced_rt.clear()
-                    fake_d0_rt.clear()
-                    fake_z0_rt.clear()
-                    fake_pos_x_rt.clear()
-                    fake_pos_y_rt.clear()
-                    fake_pos_r_rt.clear()
-                    fake_pos_z_rt.clear()
-                    fake_nhits_rt.clear()
-                    fake_pixel_nhits_rt.clear()
-                    fake_inner_nhits_rt.clear()
-                    fake_outer_nhits_rt.clear()
+                    
                     
                 #print("len(mcps_track):", len(track_mcps))
                 #for track_mcp in track_mcps:
@@ -1110,7 +1142,24 @@ for sample in sampleNames:
                 pixel_nhits_rt.push_back(pixel_nhit)
                 inner_nhits_rt.push_back(inner_nhit)
                 outer_nhits_rt.push_back(outer_nhit)
-
+            fake_track_tree.Fill() 
+            fake_pt_rt.clear()     
+            fake_phi_rt.clear()
+            fake_eta_rt.clear()
+            fake_theta_rt.clear()
+            fake_ndf_rt.clear()
+            fake_chi2_rt.clear()
+            fake_chi2_reduced_rt.clear()
+            fake_d0_rt.clear()
+            fake_z0_rt.clear()
+            fake_pos_x_rt.clear()
+            fake_pos_y_rt.clear()
+            fake_pos_r_rt.clear()
+            fake_pos_z_rt.clear()
+            fake_nhits_rt.clear()
+            fake_pixel_nhits_rt.clear()
+            fake_inner_nhits_rt.clear()
+            fake_outer_nhits_rt.clear()
             hits_tree.Fill()
             x_rt.clear()
             y_rt.clear()

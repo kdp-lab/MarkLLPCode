@@ -25,13 +25,16 @@
 using namespace std;
 
 
-TString massPoint = "1TeV";
+//TString massPoint = "1TeV";
 //TString massPoint = "2.5TeV";
 //TString massPoint = "4TeV";
 //TString massPoint = "4.5TeV";
+//TString massPoint = "misc"; // For multiple mass points, custom defined filenames
 
 std::map<TString, TH1F*> displaced_track_pt_map;
 std::map<TString, TH1F*> displaced_track_d0_map;
+std::map<TString, TH1F*> displaced_track_z0_map;
+std::map<TString, TH1F*> displaced_track_eta_map;
 std::map<TString, TH1F*> displaced_resz0_map;
 std::map<TString, TH1F*> displaced_resd0_map;
 std::map<TString, TH1F*> displaced_chi2_reduced_map;
@@ -42,6 +45,7 @@ std::map<TString, TH1F*> displaced_tp_d0_map;
 std::map<TString, TH1F*> displaced_tp_rxy_map;
 std::map<TString, TH1F*> displaced_mcp_d0_map;
 std::map<TString, TH1F*> displaced_mcp_rxy_map;
+std::map<TString, TH1F*> displaced_mcp_rxy_map_clone;
 std::map<TString, TH1F*> displaced_tp_pt_map;
 std::map<TString, TH1F*> displaced_matched_pt_map;
 std::map<TString, TH1F*> displaced_mcp_pt_map;
@@ -56,6 +60,21 @@ std::map<TString, TH1F*> displaced_eff_z0_map;
 std::map<TString, TH1F*> displaced_eff_acc_eta_map;
 std::map<TString, TH1F*> displaced_eff_eta_map;
 
+std::map<TString, TH1F*> fake_track_pt_map;
+std::map<TString, TH1F*> fake_track_eta_map;
+std::map<TString, TH1F*> fake_track_d0_map;
+std::map<TString, TH1F*> fake_track_z0_map;
+std::map<TString, TH1F*> fake_track_chi2_reduced_map;
+std::map<TString, TH1F*> fake_track_nhits_map;
+
+// For overlaying displaced tracks (wtih same binning) with fake track distributions
+std::map<TString, TH1F*> displaced_overlay_track_nhits_map;
+std::map<TString, TH1F*> displaced_overlay_track_pt_map;
+std::map<TString, TH1F*> displaced_overlay_track_eta_map;
+std::map<TString, TH1F*> displaced_overlay_track_d0_map;
+std::map<TString, TH1F*> displaced_overlay_track_z0_map;
+std::map<TString, TH1F*> displaced_overlay_track_chi2_reduced_map;
+
   std::map<TString, TString> legend_map = {
     {"1000_0.05", "1 TeV, 15 mm"},
     {"1000_0.1", "1 TeV, 30 mm"},
@@ -69,7 +88,20 @@ std::map<TString, TH1F*> displaced_eff_eta_map;
     {"4000_10", "4 TeV, 3000 mm"},
     {"4500_0.1", "4.5 TeV, 30 mm"},
     {"4500_1", "4.5 TeV, 300 mm"},
-    {"4500_10", "4.5 TeV, 3000 mm"}
+    {"4500_10", "4.5 TeV, 3000 mm"},
+    {"1000_0.05_bib", "1 TeV, 15 mm w/ BIB"},
+    {"1000_0.1_bib", "1 TeV, 30 mm w/ BIB"},
+    {"1000_1_bib", "1 TeV, 300 mm w/ BIB"},
+    {"1000_10_bib", "1 TeV, 3000 mm w/ BIB"},
+    {"2500_0.1_bib", "2.5 TeV, 30 mm w/ BIB"},
+    {"2500_1_bib", "2.5 TeV, 300 mm w/ BIB"},
+    {"2500_10_bib", "2.5 TeV, 3000 mm w/ BIB"},
+    {"4000_0.1_bib", "4 TeV, 30 mm w/ BIB"},
+    {"4000_1_bib", "4 TeV, 300 mm w/ BIB"},
+    {"4000_10_bib", "4 TeV, 3000 mm w/ BIB"},
+    {"4500_0.1_bib", "4.5 TeV, 30 mm w/ BIB"},
+    {"4500_1_bib", "4.5 TeV, 300 mm w/ BIB"},
+    {"4500_10_bib", "4.5 TeV, 3000 mm w/ BIB"}
   };
 
 // Populate the maps with histograms
@@ -77,6 +109,8 @@ void initialize_histograms(std::vector<TString> fileNames) {
   for (TString fileName : fileNames){
     displaced_track_pt_map[fileName] = new TH1F("displaced_track_pt_" + fileName, ";Stau Decay Product Track p_{T} [GeV]; Tracks / 250.0 GeV", 20, 0, 5000.0);
     displaced_track_d0_map[fileName] = new TH1F("displaced_track_d0_" + fileName, ";Stau Decay Product Track d_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);;
+    displaced_track_z0_map[fileName] = new TH1F("displaced_track_z0_" + fileName, ";Stau Decay Product Track z_{0} [mm]; Tracking particles / 10 mm", 30, -150.0, 150.0);
+    displaced_track_eta_map[fileName] = new TH1F("displaced_track_eta_" + fileName, ";Stau Decay Product Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
     displaced_resz0_map[fileName] = new TH1F("displaced_resz0_" + fileName, ";|Track z_{0} - Matched z_{0}|; Tracks / 0.2 mm", 25, 0, 5);;
     displaced_resd0_map[fileName] = new TH1F("displaced_resd0_" + fileName, ";|Track d_{0} - Matched d_{0}|; Tracks / 0.2 mm", 20, 0, 2);;
     displaced_chi2_reduced_map[fileName] = new TH1F("displaced_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);;
@@ -87,9 +121,22 @@ void initialize_histograms(std::vector<TString> fileNames) {
     displaced_tp_rxy_map[fileName] = new TH1F("displaced_tp_rxy_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 10, 0, 500.0);;
     displaced_mcp_d0_map[fileName] = new TH1F("displaced_mcp_d0_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 10, 0, 200.0);;
     displaced_mcp_rxy_map[fileName] = new TH1F("displaced_mcp_rxy_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);;
+    displaced_mcp_rxy_map_clone[fileName] = new TH1F("displaced_mcp_rxy_" + fileName + "_clone", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 10, 0, 500.0);;
     displaced_tp_pt_map[fileName] = new TH1F("displaced_tp_pt_" + fileName, ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);;
     displaced_matched_pt_map[fileName] = new TH1F("displaced_matched_pt_" + fileName, ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
     displaced_mcp_pt_map[fileName] = new TH1F("displaced_mcp_pt_" + fileName, ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
+    fake_track_pt_map[fileName] = new TH1F("fake_track_pt_" + fileName, ";Fake Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 500.0);
+    fake_track_eta_map[fileName] = new TH1F("fake_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
+    fake_track_d0_map[fileName] = new TH1F("fake_track_d0_" + fileName, ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
+    fake_track_z0_map[fileName] = new TH1F("fake_track_z0_" + fileName, ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
+    fake_track_chi2_reduced_map[fileName] = new TH1F("displaced_overlay_track_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
+    fake_track_nhits_map[fileName] = new TH1F("fake_track_nhits_map_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
+    displaced_overlay_track_nhits_map[fileName] = new TH1F("displaced_overlay_track_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
+    displaced_overlay_track_pt_map[fileName] = new TH1F("displaced_overlay_track_pt_" + fileName, ";Fake Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 500.0);
+    displaced_overlay_track_eta_map[fileName] = new TH1F("displaced_overlay_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
+    displaced_overlay_track_d0_map[fileName] = new TH1F("displaced_overlay_track_d0_" + fileName, ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
+    displaced_overlay_track_z0_map[fileName] = new TH1F("displaced_overlay_track_z0_" + fileName, ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
+    displaced_overlay_track_chi2_reduced_map[fileName] = new TH1F("fake_track_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
   }
 }
 
@@ -703,7 +750,7 @@ const TString fileName
 
     TH1F* stau_PtRel = new TH1F("stau_PtRel", ";|((stau Track p_{T} - Matched p_{T}) / Matched p_{T})|; Tracks / 0.5", 10, 0, 5);
 
-    TH1F* fake_track_pt = new TH1F("fake_track_pt", ";Fake Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
+    TH1F* fake_track_pt = new TH1F("fake_track_pt", ";Fake Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 500.0);
     TH1F* fake_track_eta = new TH1F("fake_track_eta", ";Fake Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
     TH1F* fake_track_d0 = new TH1F("fake_track_d0", ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     TH1F* fake_track_z0 = new TH1F("fake_track_z0", ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
@@ -731,7 +778,7 @@ const TString fileName
 
     char ctxt[500];
     TCanvas c;
-    TString dir = "Plots_" + fileName + "";
+    TString dir = "BIBPlots" + fileName + "";
     gSystem->mkdir(dir);
     TString DIR = dir + "/";
 
@@ -909,21 +956,42 @@ const TString fileName
 
         displaced_track_pt_map[fileName]->Fill(LC_daughter_track_pt->at(iDPTrack));
         displaced_track_d0_map[fileName]->Fill(LC_daughter_d0->at(iDPTrack));
+        displaced_track_z0_map[fileName]->Fill(LC_daughter_z0->at(iDPTrack));
+        displaced_track_eta_map[fileName]->Fill(LC_daughter_track_eta->at(iDPTrack));
         displaced_chi2_reduced_map[fileName]->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
         displaced_nhits_map[fileName]->Fill(LC_daughter_nhits->at(iDPTrack));
+
+        displaced_overlay_track_nhits_map[fileName]->Fill(LC_daughter_nhits->at(iDPTrack)); // FIXME add vertex, IT, OT hits too!
+        displaced_overlay_track_pt_map[fileName]->Fill(LC_daughter_track_pt->at(iDPTrack));
+        std::cout << "LC_daughter_track_eta->at(iDPTrack): " << LC_daughter_track_eta->at(iDPTrack) << "\n";
+        displaced_overlay_track_eta_map[fileName]->Fill(LC_daughter_track_eta->at(iDPTrack));
+        displaced_overlay_track_d0_map[fileName]->Fill(LC_daughter_d0->at(iDPTrack));
+        displaced_overlay_track_z0_map[fileName]->Fill(LC_daughter_z0->at(iDPTrack));
+        displaced_overlay_track_chi2_reduced_map[fileName]->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack));
+
         displaced_matched_d0_map[fileName]->Fill(abs(LC_daughter_d0_match->at(iDPTrack)));
         displaced_matched_rxy_map[fileName]->Fill(abs(LC_daughter_r_vertex_match->at(iDPTrack)));
         displaced_matched_pt_map[fileName]->Fill(LC_daughter_pt_match->at(iDPTrack));
         displaced_resd0_map[fileName]->Fill(abs(LC_daughter_d0->at(iDPTrack) - LC_daughter_d0_match->at(iDPTrack)));
         displaced_resz0_map[fileName]->Fill(abs(LC_daughter_z0->at(iDPTrack) - LC_daughter_z0_match->at(iDPTrack)));
       }
-
+      std::cout << "displaced_matched_pt_map[filename]->GetEntries(): " << displaced_matched_pt_map[fileName]->GetEntries() << " for: " << fileName << "\n";
+      std::cout << "fake_pt->size(): " << fake_pt->size() << "\n";
+      std::cout << "fake_pt->size(): " << fake_eta->size() << "\n";
+      std::cout << "fake_pt->size(): " << fake_d0->size() << "\n";
+      std::cout << "fake_pt->size(): " << fake_z0->size() << "\n";
       for (unsigned int iFakeTrk = 0; iFakeTrk < fake_pt->size(); ++iFakeTrk){ // Fill fake track properties
         fake_track_pt->Fill(fake_pt->at(iFakeTrk));
         fake_track_eta->Fill(fake_eta->at(iFakeTrk));
         fake_track_d0->Fill(fake_d0->at(iFakeTrk));
         fake_track_z0->Fill(fake_z0->at(iFakeTrk));
         fake_track_chi2_reduced->Fill(fake_chi2_reduced->at(iFakeTrk));
+        fake_track_nhits_map[fileName]->Fill(fake_nhits->at(iFakeTrk));
+        fake_track_pt_map[fileName]->Fill(fake_pt->at(iFakeTrk));
+        fake_track_eta_map[fileName]->Fill(fake_eta->at(iFakeTrk));
+        fake_track_d0_map[fileName]->Fill(fake_d0->at(iFakeTrk));
+        fake_track_z0_map[fileName]->Fill(fake_z0->at(iFakeTrk));
+        fake_track_chi2_reduced_map[fileName]->Fill(fake_chi2_reduced->at(iFakeTrk));
       }
     
 
@@ -1292,8 +1360,24 @@ const TString fileName
   TCanvas* cTrackPt = new TCanvas("cTrackPt", "Overlayed Histograms", 800, 600);
   TCanvas* cNHits = new TCanvas("cNHits", "Overlayed Histograms", 800, 600);
   TCanvas* cChi2R = new TCanvas("cChi2R", "Overlayed Histograms", 800, 600);
+  
+
+  TCanvas* cFakeTrackD0 = new TCanvas("cFakeTrackD0", "Overlayed Histograms", 800, 600);
+  cFakeTrackD0->SetLogy();
+  TCanvas* cFakeTrackZ0 = new TCanvas("cFakeTrackZ0", "Overlayed Histograms", 800, 600);
+  cFakeTrackZ0->SetLogy();
+  TCanvas* cFakeTrackPt = new TCanvas("cFakeTrackPt", "Overlayed Histograms", 800, 600);
+  cFakeTrackPt->SetLogy();
+  TCanvas* cFakeNHits = new TCanvas("cFakeNHits", "Overlayed Histograms", 800, 600);
+  cFakeNHits->SetLogy();
+  TCanvas* cFakeChi2R = new TCanvas("cFakeChi2R", "Overlayed Histograms", 800, 600);
+  cFakeChi2R->SetLogy();
+  TCanvas* cFakeEta = new TCanvas("cFakeEta", "Overlayed Histograms", 800, 600);
+  cFakeEta->SetLogy();
+
   TCanvas* cResZ0 = new TCanvas("cResZ0", "Overlayed Histograms", 800, 600);
   TCanvas* cResD0 = new TCanvas("cResD0", "Overlayed Histograms", 800, 600);
+
   TCanvas* cEffAccD0 = new TCanvas("cEffAccD0", "Overlayed Histograms", 800, 600);
   TCanvas* cEffD0 = new TCanvas("cEffD0", "Overlayed Histograms", 800, 600);
   TCanvas* cEffAccRXY = new TCanvas("cEffAccRXY", "Overlayed Histograms", 800, 600);
@@ -1301,23 +1385,126 @@ const TString fileName
   TCanvas* cEffAccPt = new TCanvas("cEffAccPt", "Overlayed Histograms", 800, 600);
   TCanvas* cEffPt = new TCanvas("cEffPt", "Overlayed Histograms", 800, 600);
 
+  TLegend* legendFake0 = new TLegend(0.6, 0.8, 0.95, 0.95);
+  legendFake0->SetTextSize(0.0215); // Adjust text size
+  TLegend* legendFake1 = new TLegend(0.7, 0.8, 0.95, 0.95);
+  legendFake1->SetTextSize(0.0215); // Adjust text size
+  TLegend* legendFake2 = new TLegend(0.7, 0.8, 0.95, 0.95);
+  legendFake2->SetTextSize(0.0215); // Adjust text size
+  TLegend* legendFake3 = new TLegend(0.7, 0.8, 0.95, 0.95);
+  legendFake3->SetTextSize(0.0215); // Adjust text size
+  TLegend* legendFake4 = new TLegend(0.6, 0.8, 0.95, 0.95);
+  legendFake4->SetTextSize(0.0215); // Adjust text size
+  TLegend* legendFake5 = new TLegend(0.6, 0.8, 0.95, 0.95);
+  legendFake5->SetTextSize(0.0215); // Adjust text size
 
-  TLegend* legendLog = new TLegend(0.5, 0.7, 0.95, 0.95);
-  legendLog->SetTextSize(0.03); // Adjust text size
+  TLegend* legendLog = new TLegend(0.6, 0.8, 0.95, 0.95);
+  legendLog->SetTextSize(0.0215); // Adjust text size
   TLegend* legend1 = new TLegend(0.5, 0.7, 0.95, 0.95);
   legend1->SetTextSize(0.03); // Adjust text size
   TLegend* legend2 = new TLegend(0.55, 0.75, 0.95, 0.95);
   legend2->SetTextSize(0.0275); // Adjust text size
   TLegend* legend3 = new TLegend(0.6, 0.8, 0.95, 0.95);
   legend3->SetTextSize(0.0215); // Adjust text size
+  TCanvas* cRxy = new TCanvas("cRxy", "Overlayed Histograms", 800, 600);
+  TLegend* legendRxy = new TLegend(0.75, 0.75, 0.95, 0.95);
+  legendRxy->SetTextSize(0.03); // Adjust text size
+  cRxy->SetLogy();
   for (TString fileName : fileNames){
+    std::cout << "fileName: " << fileName << "\n";
 
-    TString dir = "Plots_" + fileName + "";
+    TString dir = "BIBPlots" + fileName + "";
     gSystem->mkdir(dir);
     TString DIR = dir + "/";
-    TString OverlayDIR = "OverlayedPlots" + massPoint + "/";
+    TString OverlayDIR = "BIBOverlayedPlots" + fileName + "/";
     gSystem->mkdir(OverlayDIR);
 
+    // Mcp info
+    cRxy->cd();
+    displaced_mcp_rxy_map[fileName]->SetLineColor(colorCounter);
+    displaced_mcp_rxy_map[fileName]->SetMaximum(1000);
+    displaced_mcp_rxy_map[fileName]->GetYaxis()->SetTitle("Num. Charged Decay Products");
+    displaced_mcp_rxy_map[fileName]->GetXaxis()->SetTitle("Prod. R_{xy} [mm]");
+    legendRxy->AddEntry(displaced_mcp_rxy_map[fileName], legend_map[fileName], "l");
+    if (colorCounter == 1) displaced_mcp_rxy_map[fileName]->Draw("HIST");
+    else displaced_mcp_rxy_map[fileName]->Draw("HIST SAME");
+    if (colorCounter == fileNames.size()){
+      legendRxy->Draw();
+      cRxy->SaveAs(OverlayDIR + "displaced_mcp_prod_rxy.pdf");
+    }
+
+    // Overlay fake (meant for BIB) and displaced track propertes
+    if (fileNames.size() == 1){ // Only do if working with one sample
+      cFakeTrackPt->cd();
+      fake_track_pt_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_pt_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_pt_map[fileName]->GetXaxis()->SetTitle("Track p_{T} [GeV]");
+      fake_track_pt_map[fileName]->Draw("HIST");
+      displaced_overlay_track_pt_map[fileName]->Draw("HIST SAME");
+      legendFake0->AddEntry(displaced_overlay_track_pt_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_pt_map[fileName]->GetBinContent(displaced_overlay_track_pt_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake0->AddEntry(fake_track_pt_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_pt_map[fileName]->GetBinContent(fake_track_pt_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake0->Draw();
+      cFakeTrackPt->SaveAs(OverlayDIR + "fake_displaced_pt.pdf");
+
+      cFakeEta->cd();
+      std::cout << "displaced_overlay_track_eta_map[fileName] entries: " << displaced_overlay_track_eta_map[fileName]->GetEntries() << "\n";
+      fake_track_eta_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_eta_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_eta_map[fileName]->GetXaxis()->SetTitle("Track #eta");
+      fake_track_eta_map[fileName]->Draw("HIST");
+      displaced_overlay_track_eta_map[fileName]->Draw("HIST SAME");
+      legendFake1->AddEntry(displaced_overlay_track_eta_map[fileName], "Displaced Trks", "l");
+      legendFake1->AddEntry(fake_track_eta_map[fileName], "Fake Tracks", "l");
+      legendFake1->Draw();
+      cFakeEta->SaveAs(OverlayDIR + "fake_displaced_eta.pdf");
+
+      cFakeTrackD0->cd();
+      fake_track_d0_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_d0_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_d0_map[fileName]->GetXaxis()->SetTitle("Track d_{0} [mm]");
+      fake_track_d0_map[fileName]->Draw("HIST");
+      displaced_overlay_track_d0_map[fileName]->Draw("HIST SAME");
+      legendFake2->AddEntry(displaced_overlay_track_d0_map[fileName], "Displaced Trks", "l");
+      legendFake2->AddEntry(fake_track_d0_map[fileName], "Fake Tracks", "l");
+      legendFake2->Draw();
+      cFakeTrackD0->SaveAs(OverlayDIR + "fake_displaced_d0.pdf");
+
+      cFakeTrackZ0->cd();
+      fake_track_z0_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_z0_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_z0_map[fileName]->GetXaxis()->SetTitle("Track # [mm]");
+      fake_track_z0_map[fileName]->Draw("HIST");
+      displaced_overlay_track_z0_map[fileName]->Draw("HIST SAME");
+      legendFake3->AddEntry(displaced_overlay_track_z0_map[fileName], "Displaced Trks", "l");
+      legendFake3->AddEntry(fake_track_z0_map[fileName], "Fake Tracks", "l");
+      legendFake3->Draw();
+      cFakeTrackZ0->SaveAs(OverlayDIR + "fake_displaced_z0.pdf");
+
+      cFakeNHits->cd();
+      fake_track_nhits_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_nhits_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_nhits_map[fileName]->GetXaxis()->SetTitle("Number of Tracker Hits");
+      
+      fake_track_nhits_map[fileName]->Draw("HIST");
+      displaced_overlay_track_nhits_map[fileName]->Draw("HIST SAME");
+      legendFake4->AddEntry(displaced_overlay_track_nhits_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_nhits_map[fileName]->GetBinContent(displaced_overlay_track_nhits_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake4->AddEntry(fake_track_nhits_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_nhits_map[fileName]->GetBinContent(fake_track_nhits_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake4->Draw();
+      cFakeNHits->SaveAs(OverlayDIR + "fake_displaced_nhits.pdf"); // FIXME add n vxd, inner, outer hits
+
+      cFakeChi2R->cd();
+      fake_track_chi2_reduced_map[fileName]->SetLineColor(colorCounter);
+      displaced_overlay_track_chi2_reduced_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_chi2_reduced_map[fileName]->GetXaxis()->SetTitle("#chi^{2} / ndf");
+      
+      fake_track_chi2_reduced_map[fileName]->Draw("HIST");
+      displaced_overlay_track_chi2_reduced_map[fileName]->Draw("HIST SAME");
+      legendFake5->AddEntry(displaced_overlay_track_chi2_reduced_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_chi2_reduced_map[fileName]->GetBinContent(displaced_overlay_track_chi2_reduced_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake5->AddEntry(fake_track_chi2_reduced_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_chi2_reduced_map[fileName]->GetBinContent(fake_track_chi2_reduced_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake5->Draw();
+      cFakeChi2R->SaveAs(OverlayDIR + "fake_displaced_Chi2R.pdf");
+    }
+    
     cTrackD0->cd();
 
     // Draw histograms on the same canvas
@@ -1331,7 +1518,7 @@ const TString fileName
     if (colorCounter == 1) displaced_track_d0_map[fileName]->Draw("HIST");
     else displaced_track_d0_map[fileName]->Draw("HIST SAME");
 
-    legendLog->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " entries", "l");
+    legendLog->AddEntry(displaced_track_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_d0_map[fileName]->GetEntries())) + " tracks", "l");
     legendLog->Draw();
     if (colorCounter == fileNames.size()) cTrackD0->SaveAs(OverlayDIR + "displaced_track_d0_overlay.pdf");
     
@@ -1340,6 +1527,7 @@ const TString fileName
     displaced_track_pt_map[fileName]->SetLineColor(colorCounter);
     displaced_track_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_track_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_track_pt_map[fileName]->SetMaximum(50);
     displaced_track_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_track_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
 
@@ -1347,7 +1535,7 @@ const TString fileName
     if (colorCounter == 1) displaced_track_pt_map[fileName]->Draw("HIST");
     else displaced_track_pt_map[fileName]->Draw("HIST SAME");
 
-    legend1->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " entries", "l");
+    legend1->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " tracks", "l");
 
     // Save canvas
     if (colorCounter == fileNames.size()){
@@ -1360,6 +1548,7 @@ const TString fileName
     displaced_nhits_map[fileName]->SetLineColor(colorCounter);
     displaced_nhits_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_nhits_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_nhits_map[fileName]->SetMaximum(200);
     displaced_nhits_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_nhits_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
 
@@ -1378,6 +1567,7 @@ const TString fileName
     displaced_chi2_reduced_map[fileName]->SetLineColor(colorCounter);
     displaced_chi2_reduced_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_chi2_reduced_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    displaced_chi2_reduced_map[fileName]->SetMaximum(75);
     displaced_chi2_reduced_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_chi2_reduced_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
 
@@ -1416,7 +1606,7 @@ const TString fileName
     displaced_resd0_map[fileName]->SetMaximum(400);
 
     if (colorCounter == 1) displaced_resd0_map[fileName]->Draw("HIST");
-    else displaced_resd0_map[fileName]->Draw("HIST SAME");
+    else displaced_resd0_map[fileName]->Draw("SAME");
 
     if (colorCounter == fileNames.size()){
       legend1->Draw();
@@ -1438,10 +1628,10 @@ const TString fileName
     displaced_eff_acc_d0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_acc_d0_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_acc_d0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_acc_d0_map[fileName]->Draw("HIST");
-    else displaced_eff_acc_d0_map[fileName]->Draw("HIST SAME");
+    if (colorCounter == 1) displaced_eff_acc_d0_map[fileName]->Draw();
+    else displaced_eff_acc_d0_map[fileName]->Draw("SAME");
     
-    legend2->AddEntry(displaced_eff_acc_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_eff_acc_d0_map[fileName]->GetEntries())) + " entries", "l");
+    legend2->AddEntry(displaced_eff_acc_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_matched_d0_map[fileName]->GetEntries())) + " tracks", "l");
     
     if (colorCounter == fileNames.size()){
       legend2->Draw();
@@ -1461,8 +1651,8 @@ const TString fileName
     displaced_eff_d0_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_d0_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_d0_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_d0_map[fileName]->Draw("HIST");
-    else displaced_eff_d0_map[fileName]->Draw("HIST SAME");
+    if (colorCounter == 1) displaced_eff_d0_map[fileName]->Draw();
+    else displaced_eff_d0_map[fileName]->Draw("SAME");
     
     if (colorCounter == fileNames.size()){
       legend2->Draw();
@@ -1483,8 +1673,8 @@ const TString fileName
     displaced_eff_acc_rxy_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_acc_rxy_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_acc_rxy_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_acc_rxy_map[fileName]->Draw("HIST");
-    else displaced_eff_acc_rxy_map[fileName]->Draw("HIST SAME");
+    if (colorCounter == 1) displaced_eff_acc_rxy_map[fileName]->Draw();
+    else displaced_eff_acc_rxy_map[fileName]->Draw("SAME");
     
    
     if (colorCounter == fileNames.size()){
@@ -1505,14 +1695,12 @@ const TString fileName
     displaced_eff_rxy_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_rxy_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_rxy_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_rxy_map[fileName]->Draw("HIST");
-    else displaced_eff_rxy_map[fileName]->Draw("HIST SAME");
-    
+    if (colorCounter == 1) displaced_eff_rxy_map[fileName]->Draw();
+    else displaced_eff_rxy_map[fileName]->Draw("SAME");
     if (colorCounter == fileNames.size()){
       legend2->Draw();
       cEffRXY->SaveAs(OverlayDIR + "displaced_eff_rxy_overlay.pdf");
     } 
-
     cEffAccPt->cd();
     displaced_matched_pt_map[fileName]->Sumw2();
     displaced_tp_pt_map[fileName]->Sumw2();
@@ -1526,17 +1714,16 @@ const TString fileName
     displaced_eff_acc_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_acc_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_acc_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw("HIST");
-    else displaced_eff_acc_pt_map[fileName]->Draw("HIST SAME");
-
-    legend3->AddEntry(displaced_eff_acc_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_eff_acc_pt_map[fileName]->GetEntries())) + " entries", "l");
-    
+    if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw();
+    else displaced_eff_acc_pt_map[fileName]->Draw("SAME");
+    legend3->AddEntry(displaced_eff_acc_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_matched_pt_map[fileName]->GetEntries())) + " tracks", "l");
     if (colorCounter == fileNames.size()){
       legend3->Draw();
       cEffAccPt->SaveAs(OverlayDIR + "displaced_eff_acc_pt_overlay.pdf");
     } 
 
     cEffPt->cd();
+
     displaced_matched_pt_map[fileName]->Sumw2();
     displaced_mcp_pt_map[fileName]->Sumw2();
     displaced_eff_pt_map[fileName] = (TH1F*)displaced_matched_pt_map[fileName]->Clone();
@@ -1544,20 +1731,20 @@ const TString fileName
     displaced_eff_pt_map[fileName]->GetYaxis()->SetTitle("Efficiency");
     displaced_eff_pt_map[fileName]->Divide(displaced_matched_pt_map[fileName], displaced_mcp_pt_map[fileName], 1.0, 1.0, "B");
     displaced_eff_pt_map[fileName]->SetAxisRange(0, 1.1, "Y");
-    displaced_eff_pt_map[fileName]->SetLineColor(kRed);
+    displaced_eff_pt_map[fileName]->SetLineColor(colorCounter);
     displaced_eff_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_eff_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
     displaced_eff_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_eff_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
-    if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw("HIST");
-    else displaced_eff_acc_pt_map[fileName]->Draw("HIST SAME");
-
+    if (colorCounter == 1) displaced_eff_pt_map[fileName]->Draw();
+    else displaced_eff_pt_map[fileName]->Draw("SAME");
     if (colorCounter == fileNames.size()){
       legend3->Draw();
       cEffPt->SaveAs(OverlayDIR + "displaced_eff_pt_overlay.pdf");
     } 
     colorCounter++; 
     }
+    
   }
 
 // Declare helper functions 
@@ -1646,11 +1833,13 @@ bool isApproximatelyEqualToAny(const std::vector<float>& vec, float value, float
 
 void callRootAnalyzer(){
   std::vector<TString> fileNames;
-  if (massPoint == "1TeV") fileNames = {"1000_0.1", "1000_1", "1000_10"};
-  if (massPoint == "2.5TeV") fileNames = {"2500_0.1", "2500_1", "2500_10"};
-  if (massPoint == "4TeV") fileNames = {"4000_0.1", "4000_1", "4000_10"};
-  if (massPoint == "4.5TeV") fileNames = {"4500_0.1", "4500_1", "4500_10"};
-
+  //if (massPoint == "1TeV") fileNames = {"1000_0.1", "1000_1", "1000_10"};
+  //if (massPoint == "2.5TeV") fileNames = {"2500_0.1", "2500_1", "2500_10"};
+  //if (massPoint == "4TeV") fileNames = {"4000_0.1", "4000_1", "4000_10"};
+  //if (massPoint == "4.5TeV") fileNames = {"4500_0.1", "4500_1", "4500_10"};
+  //fileNames = {"2500_1_bib"};
+  fileNames = {"1000_1_bib"};
+  //fileNames = {"1000_0.1", "2500_0.1", "4000_0.1"};
   initialize_histograms(fileNames);
   for (int i = 0; i < fileNames.size(); i++){
     std::cout << "fileNames[i]: " << fileNames[i];

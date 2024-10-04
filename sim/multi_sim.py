@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run multiple DDSIM simulations simultaneously.")
     parser.add_argument("input_files", nargs="+", help="List of input files for simulations.")
     parser.add_argument("-n", "--number_of_events", help="Number of events to simulate.", type=int, default=1000)
-    parser.add_argument("-o", "--output_directory", help="Output directory for simulation results.", default="/local/d1/mu+mu-/sim_v3")
+    parser.add_argument("-o", "--output_directory", help="Output directory for simulation results.", default="/home/larsonma/MarkLLPCode/sim")
     parser.add_argument("-j", "--ncpu", help="Number of CPU cores to use.", type=int, default=1)
     args = parser.parse_args()
     
