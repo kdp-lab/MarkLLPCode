@@ -7,12 +7,12 @@ should_transfer_files = YES
 Output  = output.out.$(Cluster)-$(Process)
 Log     = log.$(Cluster)
 Error   = error.out.$(Cluster)-$(Process)
-transfer_input_files = /ospool/uc-shared/project/futurecolliders/larsonma/sim_osg_condor/$(sample)_sim$(ProcId).slcio, /scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/mucoll-benchmarks/digitisation/k4run/digi_steer.py, root://eosuser.cern.ch//eos/user/m/mlarson/BIB/sim_mm_pruned, root://eosuser.cern.ch//eos/user/m/mlarson/BIB/sim_mp_pruned
+transfer_input_files = /ospool/uc-shared/project/futurecolliders/larsonma/sim_osg_condor/$(sample)_sim$(ProcId).slcio, /scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/mucoll-benchmarks/digitisation/k4run/digi_steer.py
 when_to_transfer_output = ON_EXIT
 request_cpus = 1
-request_disk = 35 GB
+request_disk = 5 GB
 request_memory = 5 GB
 +ProjectName="collab.futurecolliders"
 Executable = /scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/digi/digi.sh
-Arguments = --inputFile $(sample) --chunks 10 --nEvents 10 --pId $(ProcId) --BIB 6
+Arguments = --inputFile $(sample) --chunks 10 --nEvents 10 --pId $(ProcId) --BIB 19
 Queue 10
