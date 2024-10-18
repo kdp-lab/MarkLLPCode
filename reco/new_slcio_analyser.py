@@ -6,6 +6,9 @@ from math import *
 import numpy as np
 import uproot
 import time
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+fm._get_fontconfig_fonts()
 
 # ############## SETUP #############################
 # Prevent ROOT from drawing while you're running -- good for slow remote servers
@@ -13,7 +16,7 @@ import time
 ROOT.gROOT.SetBatch()
 
 # Set up some options, constants
-max_events = 100 # Set to -1 to run over all events
+max_events = 1000 # Set to -1 to run over all events
 Bfield = 3.57 #T, 3.57 for legacy
 
 def check_hard_radiation(mcp, fractional_threshold):
@@ -56,16 +59,17 @@ def acceptanceCutsDisplaced(mcp):
 # Gather input files
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
 base_path = "/home/larsonma/MarkLLPCode/reco/"
-#input_path = "/local/d1/mu+mu-/reco_v3/osg_test/"
+#input_path = "/local/d1/mu+mu-/reco_v3/osg_comparison_final/"
+#input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
 #input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
-input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
 #input_path = "/home/larsonma/"
 #sampleNames = ["2500_0.1", "2500_1", "2500_10", "4000_0.1", "4000_1", "4000_10", "1000_0.05", "1000_0.1", "1000_1", "4500_10", "4500_1", "4500_0.1"]
 #sampleNames = ["1000_0.1", "1000_1", "2500_0.1", "2500_1", "2500_10", "4000_0.1", "4500_0.1"]
 #sampleNames = ["4000_0.1", "4000_1", "4000_10", "4500_0.1", "4500_1", "4500_10"]
 #sampleNames = ["bib"]
-sampleNames = ["4000_10_bib_nocut", "4500_10_bib_nocut"]
-#sampleNames = ["2500_1"]
+#sampleNames = ["2500_1_bib_nocut"]
+sampleNames = ["2500_10", "4000_1", "4000_10", "4500_10"]
+#sampleNames = ["4000_10_bib_nocut", "4500_10_bib_nocut"]
 #sampleNames = ["2500_0.1_simosg", "2500_1_simosg", "4000_0.1_simosg", "4500_0.1_simosg"]
 #sampleNames = ["4500_10_timext"]
 # Loop over sample names to construct file paths
@@ -89,6 +93,8 @@ for sample in sampleNames:
     track_tree = ROOT.TTree("AllTracks", "All Tracks")
     stau_track_tree = ROOT.TTree("AllStauTracks", "All Stau Tracks")
     daughter_track_tree = ROOT.TTree("AllDecayProductTracks", "All Charged Stau Decay Product Tracks")
+    dr_daughter_track_tree = ROOT.TTree("AllDecayProductTracks_drMatched", "All Charged Stau Decay Product Tracks (matched with dr)")
+    dr_tracks_checked_tree = ROOT.TTree("TracksCheckedWithDr", "Full track collection checked per mcp")
     fake_track_tree = ROOT.TTree("AllFakeTracks", "All fake tracks, w/o mcp or multiple non-duplicate MCPs")
     hits_tree = ROOT.TTree("AllHits", "Info about all tracker hits")
 
@@ -161,8 +167,12 @@ for sample in sampleNames:
     mcp_stau_decay_products_tree.Branch('mcp_daughter_z_endpoint', mcp_daughter_z_endpoint_rt)
     mcp_daughter_track_bool_rt = ROOT.std.vector('int')()
     mcp_stau_decay_products_tree.Branch('mcp_daughter_track_bool', mcp_daughter_track_bool_rt)
+    dr_mcp_daughter_track_bool_rt = ROOT.std.vector('int')()
+    mcp_stau_decay_products_tree.Branch('dr_mcp_daughter_track_bool', dr_mcp_daughter_track_bool_rt)
     mcp_daughter_track_reconstructable_bool_rt = ROOT.std.vector('int')()
     mcp_stau_decay_products_tree.Branch('mcp_daughter_track_reconstructable_bool', mcp_daughter_track_reconstructable_bool_rt)
+    mcp_charged_daughter_pdgid_rt = ROOT.std.vector('int')()
+    mcp_stau_decay_products_tree.Branch('mcp_daughter_pdgid', mcp_charged_daughter_pdgid_rt)
 
     # TRACK - (FOR ALL TRACKS in TRACKCOLLECTION) 
     nhits_rt = ROOT.std.vector('int')()
@@ -284,6 +294,60 @@ for sample in sampleNames:
     daughter_track_tree.Branch('LC_daughter_pt_res', LC_daughter_pt_res_rt)
     LC_daughter_dr_rt = ROOT.std.vector('float')()
     daughter_track_tree.Branch('LC_daughter_dr', LC_daughter_dr_rt)
+    
+    dr_tracks_checked_rt = ROOT.std.vector('float')()
+    dr_tracks_checked_tree.Branch('dr_tracks_checked', dr_tracks_checked_rt)
+
+    dr_LC_daughter_pt_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_pt_match', dr_LC_daughter_pt_match_rt)
+    dr_LC_daughter_track_pt_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_track_pt', dr_LC_daughter_track_pt_rt)
+    dr_LC_daughter_track_eta_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_track_eta', dr_LC_daughter_track_eta_rt)
+    dr_LC_daughter_track_phi_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_track_phi', dr_LC_daughter_track_phi_rt)
+    dr_LC_daughter_eta_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_eta_match', dr_LC_daughter_eta_match_rt)
+    dr_LC_daughter_track_theta_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_track_theta', dr_LC_daughter_track_theta_rt)
+    dr_LC_daughter_phi_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_phi_match', dr_LC_daughter_phi_match_rt)
+    dr_LC_daughter_ndf_rt = ROOT.std.vector('int')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_ndf', dr_LC_daughter_ndf_rt)
+    dr_LC_daughter_chi2_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_chi2', dr_LC_daughter_chi2_rt)
+    dr_LC_daughter_d0_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_d0', dr_LC_daughter_d0_rt)
+    dr_LC_daughter_z0_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_z0', dr_LC_daughter_z0_rt)
+    dr_LC_daughter_d0_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_d0_match', dr_LC_daughter_d0_match_rt)
+    dr_LC_daughter_deld0_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_deld0', dr_LC_daughter_deld0_rt)
+    dr_LC_daughter_z0_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_z0_match', dr_LC_daughter_z0_match_rt)
+    dr_LC_daughter_delz0_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_delz0', dr_LC_daughter_delz0_rt)
+    dr_LC_daughter_r_vertex_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_r_vertex_match', dr_LC_daughter_r_vertex_match_rt)
+    dr_LC_daughter_r_endpoint_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_r_endpoint_match', dr_LC_daughter_r_endpoint_match_rt)
+    dr_LC_daughter_z_vertex_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_z_vertex_match', dr_LC_daughter_z_vertex_match_rt)
+    dr_LC_daughter_z_endpoint_match_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_z_endpoint_match', dr_LC_daughter_z_endpoint_match_rt)
+    dr_LC_daughter_nhits_rt = ROOT.std.vector('int')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_nhits', dr_LC_daughter_nhits_rt)
+    dr_LC_daughter_pixel_nhits_rt = ROOT.std.vector('int')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_pixel_nhits',dr_LC_daughter_pixel_nhits_rt)
+    dr_LC_daughter_inner_nhits_rt = ROOT.std.vector('int')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_inner_nhits', dr_LC_daughter_inner_nhits_rt)
+    dr_LC_daughter_outer_nhits_rt = ROOT.std.vector('int')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_outer_nhits', dr_LC_daughter_outer_nhits_rt)
+    dr_LC_daughter_pt_res_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_pt_res', dr_LC_daughter_pt_res_rt)
+    dr_LC_daughter_dr_rt = ROOT.std.vector('float')()
+    dr_daughter_track_tree.Branch('dr_LC_daughter_dr', dr_LC_daughter_dr_rt)
 
     ### NEXT FOR ALL TRACKS, indiscriminate of type of particle 
 
@@ -370,6 +434,10 @@ for sample in sampleNames:
     num_matched_stau_tracks = 0
     num_reconstructable_stau_tracks = 0
 
+    num_checked_tracks = 0
+    num_matched_stau_dr_tracks = 0
+    num_matched_decayproduct_dr_tracks = 0
+
     num_matched_daughter_tracks = 0
     num_dupes = 0 
     num_fake_tracks = 0 
@@ -414,7 +482,11 @@ for sample in sampleNames:
             trackCollection = event.getCollection("SiTracks_Refitted") ### NOTE use SiTracks_Refitted
             hitsCol = event.getCollection("HitsCollection")
             print("len hits col:", len(hitsCol))
-            slimmedHitsCol = event.getCollection("SlimmedHitsCollection")
+            if "SlimmedHitsCollection" in event.getCollectionNames():
+                slimmedHitsCol = event.getCollection("SlimmedHitsCollection")
+                # Proceed with processing slimmedHitsCol (NOTE: SOME EVENTS DONT HAVE THIS???)
+            else:
+                print("SlimmedHitsCollection is not available in this event.")
 
             hit_collections = []
             IBTrackerHits = event.getCollection('ITBarrelHits')
@@ -691,7 +763,7 @@ for sample in sampleNames:
                     mcp_stau_track_reconstructable_bool_rt.push_back(stau_reconstructable)
                     #print("truth stau d0, z0, event has matched track: ", stau_d0, stau_z0, stauHasTrack, i) ### end mcp loop 
 
-
+                    ipion = 0
                     ### START LOOP THROUGH STAU DAUGHTER PARTICLES
                     mcpDaughters = mcp.getDaughters()
                     #print("num stau daughters:", len(mcpDaughters))
@@ -700,6 +772,7 @@ for sample in sampleNames:
                         mcp_daughter_tlv = ROOT.TLorentzVector()
                         mcp_daughter_tlv.SetPxPyPzE(mcp_daughter_p[0], mcp_daughter_p[1], mcp_daughter_p[2], mcpDaughter.getEnergy())
                         daughterHasTrack = False
+                        daughterHasTrack_dr = False
                         daughter_reconstructable = False
                         if abs(mcpDaughter.getPDG())==1000015 or abs(mcpDaughter.getPDG())==2000015: ### IGNORE STAUS
                             continue
@@ -754,9 +827,140 @@ for sample in sampleNames:
                                     if acceptanceCutsDisplaced(mcpDaughterDaughter):
                                         daughter_reconstructable = True
                                         n_recoable_daughter += 1
-                                        #print("recoable daughter 2")
+                                        print("recoable daughter")
                                         #print("is stau displaced product")
 
+                                        mcp_daughter_p = mcpDaughterDaughter.getMomentum()
+                                        mcpCheck_tlv = ROOT.TLorentzVector()
+                                        mcpCheck_tlv.SetPxPyPzE(mcp_daughter_p[0], mcp_daughter_p[1], mcp_daughter_p[2], mcpDaughterDaughter.getEnergy())
+                                        pdg = mcpDaughterDaughter.getPDG()
+
+                                        num_matched_dr_per_daughter = 0 # num matched tracks using dr cut
+                                        trackIndex = 0 # index in trackCollection
+                                        passed_drs = [] # list of drs passing 0.005 max
+                                        passed_track_indices = [] # indices of tracks that passed dr cut
+                                        track_hit_r_positions = []
+                                        track_hit_z_positions = []
+                                        if abs(pdg == 211): 
+                                            ipion += 1
+                                        for drTrack in trackCollection:
+                                            drTrack_chi2red = drTrack.getChi2() / float(drTrack.getNdf())
+                                            if drTrack_chi2red > 3.0: continue
+                                            theta = np.pi/2- np.arctan(drTrack.getTanLambda())
+                                            phi = drTrack.getPhi()
+                                            eta = -np.log(np.tan(theta/2))
+                                            pt  = 0.2998 * Bfield / fabs(drTrack.getOmega() * 1000.)
+                                            track_tlv = ROOT.TLorentzVector()
+                                            track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
+                                            dr = mcpCheck_tlv.DeltaR(track_tlv)
+                                            dr_tracks_checked_rt.push_back(dr)
+
+
+                                            print("mcp pdgid, dr, mcp pt, track pt:", pdg, dr, mcp_daughterDaughter_tlv.Perp(), pt)
+                                            if abs(pdg == 211) and dr < 0.005:
+                                                r_positions = []
+                                                z_positions = []
+                                                for hit in drTrack.getTrackerHits():
+                                                    position = hit.getPosition()
+                                                    x, y, z = position[0], position[1], position[2]
+                                                    r = np.sqrt(x**2 + y**2)  # Calculate r
+                                                    print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
+                                                    # Append r and z to the lists
+                                                    r_positions.append(r)
+                                                    z_positions.append(z)
+                                                track_hit_r_positions.append(r_positions)
+                                                track_hit_z_positions.append(z_positions)
+                                            
+
+                                            minDrIndex = 0
+
+                                            if dr < 0.005:
+                                                daughterHasTrack_dr = True
+                                                num_matched_dr_per_daughter += 1
+                                                passed_drs.append(dr)
+                                                passed_track_indices.append(trackIndex)
+
+                                            trackIndex += 1
+                                            dr_tracks_checked_tree.Fill()
+                                            dr_tracks_checked_rt.clear()
+                                        # Add this track's hits to the overall list
+                                        if num_matched_dr_per_daughter > 1 & ipion >= 1: 
+                                            # Create a figure and axis for the plot
+                                            plt.figure(figsize=(8, 6))
+                                            print("len(track_hit_r_positions):", len(track_hit_r_positions))
+                                            # Use a colormap to assign different colors to each track
+                                            colors = plt.get_cmap('prism', len(track_hit_r_positions))
+
+                                            # Plot the hits for each track in a different color
+                                            for j, (r_positions, z_positions) in enumerate(zip(track_hit_r_positions, track_hit_z_positions)):
+                                                plt.scatter(z_positions, r_positions, color=colors(j), label=f'Track {j+1}', marker='o', s=2)
+
+                                            # Customize the plot
+                                            plt.xlabel('z [mm]')
+                                            plt.ylabel('r [mm]')
+                                            plt.title('Track Hit Positions in r-z Plane')
+                                            plt.legend()
+
+                                            # Display the plot
+                                            plt.grid(True)
+                                            # Save the plot to a file with ievt and ipion in the filename
+                                            filename = f"PionPlotsBIB/track_hits_rz_ievt{i}_ipion{ipion}.png"
+                                            plt.savefig(filename)
+                                        if daughterHasTrack_dr:
+                                            
+                                            
+                                            minDrIndex = passed_drs.index(min(passed_drs))
+                                            print("mindrindex:", minDrIndex)
+                                            print("passed_track_indices:", passed_track_indices[minDrIndex])
+                                            matchedTrackDr = trackCollection[passed_track_indices[minDrIndex]]
+
+                                            LC_pixel_nhit = 0
+                                            LC_inner_nhit = 0
+                                            LC_outer_nhit = 0
+                                            lastLayer = -1
+                                            nLayersCrossed = 0
+                                            for hit in matchedTrackDr.getTrackerHits():
+                                                position = hit.getPosition()
+                                                #print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
+                                                # Retrieve the MCParticle and its PDG code
+                                                #mcp = hit.getMCParticle()
+                                                #hit_pdg = mcp.getPDG() if mcp else None
+                                                #print("hit pdg:", hit_pdg)
+                                            # now decode hits
+                                                encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
+                                                decoder = pyLCIO.UTIL.BitField64(encoding)
+                                                cellID = int(hit.getCellID0())
+                                                decoder.setValue(cellID)
+                                                detector = decoder["system"].value()
+                                                layer = decoder['layer'].value()
+                                                if detector == 1 or detector == 2:
+                                                    LC_pixel_nhit += 1
+                                                if detector == 3 or detector == 4:
+                                                    LC_inner_nhit += 1
+                                                if detector == 5 or detector == 6:
+                                                    LC_outer_nhit += 1
+                                                if (lastLayer != layer):
+                                                    if (detector <= 2): # if vdx
+                                                        nLayersCrossed += 0.5
+                                                    nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+                                                lastLayer = layer
+                                            nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
+                                            print("nTotalHits (dr matched) and nLayersCrossed", nTotalHits, nLayersCrossed)
+                                            if (nTotalHits < 3.5 or nLayersCrossed < 3.5):
+                                                print("doesn't pass nhits cut, skip dr matched daughter 2 track")
+                                                daughterHasTrack_dr = False 
+
+
+                                            if daughterHasTrack_dr and len(passed_drs) > 0: 
+                                                print("found matched (dr) decay product track with dr:", min(passed_drs))
+                                                num_matched_decayproduct_dr_tracks += 1
+                                                daughterHasTrack_dr = True
+                                            
+                                        
+                                        ### pass track parameters to be written to ROOT file here
+
+
+                                        
                                         ### Perform truth association to tracks (Note: likely won't work without additional seeding layers / loosening nhits)
 
                                         tracks = lcRelation.getRelatedToObjects(mcpDaughterDaughter)
@@ -849,7 +1053,9 @@ for sample in sampleNames:
                                             print("--------------------------------")
                                             num_matched_daughter_tracks += 1
                                     mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
+                                    dr_mcp_daughter_track_bool_rt.push_back(daughterHasTrack_dr)
                                     mcp_daughter_track_reconstructable_bool_rt.push_back(daughter_reconstructable)
+                                    mcp_charged_daughter_pdgid_rt.push_back(mcpDaughterDaughter.getPDG())
                                 
                     ### FIXME add another recursion to account for pi0 decay products? kaon decay products? FIX daughterHasTrack bool 
             time_after_mcp = time.time()
@@ -891,6 +1097,7 @@ for sample in sampleNames:
             mcp_daughter_z_endpoint_rt.clear()
             mcp_daughter_track_bool_rt.clear()
             mcp_daughter_track_reconstructable_bool_rt.clear()
+            mcp_charged_daughter_pdgid_rt.clear()
             daughter_track_tree.Fill()
             LC_daughter_pt_match_rt.clear()
             LC_daughter_track_pt_rt.clear()
@@ -947,6 +1154,7 @@ for sample in sampleNames:
                 outer_nhit = 0
                 lastLayer = -1
                 nLayersCrossed = 0 
+
                 for hit in track.getTrackerHits():
                     try:
                         mcp = hit.getMCParticle()
@@ -1013,7 +1221,7 @@ for sample in sampleNames:
                     fakeParents = mcp.getParents()
                     for fakeParent in fakeParents:
                         if abs(fakeParent.getPDG()) == 15:
-                            print("daughter of tau (potentially stau)")
+                            print("daughter of tau (potentially stau) fake track")
 
                     # Check if all PDG IDs are the same
                     
@@ -1026,7 +1234,7 @@ for sample in sampleNames:
                             isFakeTrack = True
                             num_mult_particles_fake_tracks += 1
                             num_fake_tracks += 1
-                            if len(set(pdg_ids)) == 1 and (abs(pdg_ids[0]) in {100015, 200015}):
+                            if len(set(pdg_ids)) == 1 and (abs(pdg_ids[0]) in {1000015, 2000015}):
                                 isFakeTrack = False
                                 num_mult_particles_fake_tracks -= 1
                                 num_fake_tracks -= 1 ## FIXME fix logic here
@@ -1135,6 +1343,38 @@ for sample in sampleNames:
                 chi2_rt.push_back(track.getChi2())
                 chi2_red_track = track.getChi2() / float(track.getNdf())
                 chi2_red_rt.push_back(chi2_red_track)
+                """
+                if chi2_red_track < 5.0: 
+                    num_checked_tracks += 1
+                    
+                    
+
+                    for mcpCheck in mcpCollection:
+                        mcp_p = mcpCheck.getMomentum()
+                        mcpCheck_tlv = ROOT.TLorentzVector()
+                        mcpCheck_tlv.SetPxPyPzE(mcp_p[0], mcp_p[1], mcp_p[2], mcpCheck.getEnergy())
+                        pdg = mcpCheck.getPDG()
+
+                        track_tlv = ROOT.TLorentzVector()
+                        track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
+                        dr = mcpCheck_tlv.DeltaR(track_tlv)
+                        if dr < 0.005:
+                            
+                            if abs(pdg) == 1000015 or 2000015:
+                                num_matched_stau_dr_tracks += 1
+                                print("found stau matched with dr")
+
+                            drParents = mcpCheck.getParents()
+                            for drParent in drParents:
+                                
+                                if abs(drParent.getPDG()) == 15:
+                                    drParentParents = drParent.getParents()
+                                    for drParentParent in drParentParents:
+                                        num_matched_decayproduct_dr_tracks += 1
+                                        print("daughter of tau (potentially stau) matched dr")
+                                    
+                """
+                    
 
                 #print("track reduced chi2", track.getChi2() / float(track.getNdf()))
                 # print("Reco pt, eta, phi, nhits, dr:", pt, eta, phi, nhitz, dr)
@@ -1198,19 +1438,33 @@ for sample in sampleNames:
         print('\t%i reconstructable stau tracks'%(num_reconstructable_stau_tracks))
         print('\t%i matched stau tracks'%(num_matched_stau_tracks))
         stau_eff = float(num_matched_stau_tracks) / float(n_mcp_stau)
+        stau_eff_dr = float(num_matched_stau_dr_tracks) / float(n_mcp_stau)
         if (num_reconstructable_stau_tracks > 0):
             stau_eff_no_acc = float(num_matched_stau_tracks) / (float(num_reconstructable_stau_tracks))
         else: 
             stau_eff_no_acc = 0
+        if (num_reconstructable_stau_tracks > 0):
+            stau_eff_no_acc_dr = float(num_matched_stau_dr_tracks) / (float(num_reconstructable_stau_tracks))
+        else: 
+            stau_eff_no_acc_dr = 0
         print("Approx. Stau Total Tracking Eff: ", stau_eff)
         print("Stau Total Tracking Eff w/ Acceptance: ", stau_eff_no_acc) 
+        print("Approx. Stau Total Tracking Eff (dr): ", stau_eff)
+        print("Stau Total Tracking Eff w/ Acceptance (dr): ", stau_eff_no_acc) 
         print("\t num charged stau decay products per event:", n_charged_mcp_daughter / max_events)
         print("\t n recoable stau decay products:", n_recoable_daughter / max_events)
         print("matched daughter tracks per event:", num_matched_daughter_tracks / max_events)
+        print("matched (dr) daughter tracks per event:", num_matched_decayproduct_dr_tracks / max_events)
         daughter_eff = float(num_matched_daughter_tracks) / float(n_charged_mcp_daughter) 
         daughter_eff_acc = float(num_matched_daughter_tracks) / float(n_recoable_daughter)
+
+        daughter_eff_dr = float(num_matched_decayproduct_dr_tracks) / float(n_charged_mcp_daughter) 
+        daughter_eff_dr_acc = float(num_matched_decayproduct_dr_tracks) / float(n_recoable_daughter)
+
         print("Approx. Displaced Total Tracking Eff: ", daughter_eff)
         print("Displaced Total Tracking Eff w/ Acceptance: ", daughter_eff_acc) 
+        print("Approx. Displaced Total Tracking Eff (with dr): ", daughter_eff_dr)
+        print("Displaced Total Tracking Eff w/ Acceptance (with dr): ", daughter_eff_dr_acc) 
         print("fake tracks per event:", float(num_fake_tracks) / float(max_events))
         print("duplicate tracks per event:", float(num_dupes) / float(max_events))
         print("unassociated fake tracks per event:", float(num_unassociated_fake_tracks) / float(max_events))
