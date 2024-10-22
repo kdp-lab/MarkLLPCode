@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Construct the nohup command
-command="k4run reco_steer.py --LcioEvent.Files ${input_file}_timext_digi${proc_id}.slcio --outputFile ${input_file}_timext_reco${proc_id}.slcio --MatFile ${ACTS_MatFile} --TGeoFile ${ACTS_TGeoFile}"
+command="k4run reco_steer.py --LcioEvent.Files ${input_file}_digi${proc_id}.slcio --outputFile ${input_file}_reco${proc_id}.slcio --MatFile ${ACTS_MatFile} --TGeoFile ${ACTS_TGeoFile}"
 
 # Print the constructed command
 echo "Executing command: $command"
@@ -60,14 +60,14 @@ echo "set stashcp client for non-OSG images"
 # Copy finished sim file
 cat  /etc/*-release  | grep VERSION_ID
 export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
-$STASHCP -d ${input_file}_timext_reco${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/reco_osg_condor2/${input_file}_timext_reco${proc_id}.slcio
+$STASHCP -d ${input_file}_reco${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/reco_osg_condor_bib/${input_file}_reco${proc_id}.slcio
 echo ">>> transfer completed"
 
 
 
 echo "<<<Delete input files so they don't get transfered twice on exit"
 rm -rf reco_steer.py
-rm -rf ${input_file}_timext_digi${proc_id}.slcio
-rm -rf ${input_file}_timext_reco${proc_id}.slcio
+rm -rf ${input_file}_digi${proc_id}.slcio
+rm -rf ${input_file}_reco${proc_id}.slcio
 rm -rf libMyBIBUtils.so
 echo ">>> Deletions complete. Test job complete"

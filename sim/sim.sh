@@ -76,5 +76,5 @@ echo "<<<Delete input files so they don't get transferred twice on exit"
 rm -rf steer_baseline.py
 rm -rf $input_file.hepmc
 rm -rf $input_file.tbl
-rm -rf ${input_file}${proc_id}.slcio
+rm -rf ${input_file}_sim${proc_id}.slcio
 echo ">>> Deletions complete. Test job complete"
