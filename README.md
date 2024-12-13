@@ -33,7 +33,7 @@ For running on osg cluster, to setup environment for either sim, digi, or reco u
 ```bash
 apptainer run \
     -B /scratch/${USER} \
-    -B /ospool/uc-shared/project/muoncollider/ \
+    -B /ospool/uc-shared/project/muoncollider/ -B /ospool/uc-shared/project/futurecolliders/ \
     /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/muon-collider/mucoll-deploy/mucoll:2.9-alma9
 
 source /opt/setup_mucoll.sh
