@@ -16,6 +16,7 @@
 #include "TMath.h"
 #include <TError.h>
 #include "TSystem.h"
+#include <cmath>
 
 #include <iostream>
 #include <string>
@@ -62,6 +63,40 @@ std::map<TString, TH1F*> displaced_eff_acc_z0_map; // FIXME make eff vs z0, eta 
 std::map<TString, TH1F*> displaced_eff_z0_map;
 std::map<TString, TH1F*> displaced_eff_acc_eta_map;
 std::map<TString, TH1F*> displaced_eff_eta_map;
+
+std::map<TString, TH1F*> stau_mcp_pt_map;
+std::map<TString, TH1F*> stau_mcp_eta_map;
+std::map<TString, TH1F*> stau_mcp_phi_map;
+std::map<TString, TH1F*> stau_mcp_d0_map;
+std::map<TString, TH1F*> stau_mcp_z0_map;
+std::map<TString, TH1F*> stau_chi2_reduced_map;
+
+std::map<TString, TH1F*> stau_tp_pt_map;
+std::map<TString, TH1F*> stau_tp_eta_map;
+std::map<TString, TH1F*> stau_tp_phi_map;
+std::map<TString, TH1F*> stau_tp_d0_map;
+std::map<TString, TH1F*> stau_tp_z0_map;
+std::map<TString, TH1F*> stau_matched_pt_map;
+std::map<TString, TH1F*> stau_velores_map;
+std::map<TString, TH1F*> stau_velores_nhits_map;
+std::map<TString, TH1F*> stau_matched_pt_all_map;
+std::map<TString, TH1F*> stau_track_pt_map;
+std::map<TString, TH1F*> stau_nhits_map;
+
+std::map<TString, TH1F*> stau_matched_phi_map;
+std::map<TString, TH1F*> stau_matched_eta_map;
+std::map<TString, TH1F*> stau_track_eta_map;
+
+std::map<TString, TH1F*> stau_eff_acc_pt_map;
+std::map<TString, TH1F*> stau_eff_acc_phi_map;
+std::map<TString, TH1F*> stau_eff_pt_map;
+std::map<TString, TH1F*> stau_eff_acc_z0_map; // FIXME make eff vs z0, eta plots
+std::map<TString, TH1F*> dstau_eff_z0_map;
+std::map<TString, TH1F*> stau_eff_acc_eta_map;
+std::map<TString, TH1F*> stau_eff_eta_map;
+
+std::map<TString, TH1F*> stau_rxy_decay_map;
+std::map<TString, TH1F*> stau_velo_residuals_map;
 
 std::map<TString, TH1F*> fake_track_pt_map;
 std::map<TString, TH1F*> fake_track_eta_map;
@@ -117,42 +152,80 @@ std::map<TString, TH1F*> displaced_overlay_track_chi2_reduced_map;
     {"4000_10_bib", "4 TeV, 3000 mm w/ BIB"},
     {"4500_0.1_bib", "4.5 TeV, 30 mm w/ BIB"},
     {"4500_1_bib", "4.5 TeV, 300 mm w/ BIB"},
-    {"4500_10_bib", "4.5 TeV, 3000 mm w/ BIB"}
+    {"4500_10_bib", "4.5 TeV, 3000 mm w/ BIB"},
+    {"2500_10_loose", "2.5 TeV, 3000 mm, Loose Timing"},
+    {"4000_10_loose", "4 TeV, 3000 mm, Loose Timing"},
+    {"2500_10_medium", "2.5 TeV, 3000 mm, Medium Timing"},
+    {"4000_10_medium", "4 TeV, 3000 mm, Medium Timing"},
+    {"2500_10_tight", "2.5 TeV, 3000 mm, Nominal Timing"},
+    {"4000_10_tight", "4 TeV, 3000 mm, Nominal Timing"},
+    {"4000_10_loose_velores", "4 TeV, 3000 mm, Loose Timing"},
+    {"4000_10_medium_velores", "4 TeV, 3000 mm, Medium Timing"},
+    {"2500_10_medium_velores", "2.5 TeV, 3000 mm, Medium Timing"},
+    {"4000_10_tight_velores", "4 TeV, 3000 mm, Nominal Timing"}
   };
 
 // Populate the maps with histograms
 void initialize_histograms(std::vector<TString> fileNames) {
   for (TString fileName : fileNames){
+
+
+    stau_mcp_pt_map[fileName] = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 100.0 GeV", 11, 1900.0, 3000.0);
+    stau_mcp_eta_map[fileName] = new TH1F("stau_mcp_eta", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1", 10, -1.25, 1.25);
+    stau_mcp_phi_map[fileName] = new TH1F("stau_mcp_phi", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1 radians", 16, -3.2, -3.2);
+    stau_mcp_d0_map[fileName] = new TH1F("stau_mcp_d0", ";Monte Carlo Stau d_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
+    stau_mcp_z0_map[fileName] = new TH1F("stau_mcp_z0", ";Monte Carlo Stau z_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
+    stau_chi2_reduced_map[fileName] = new TH1F("stau_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
+
+    stau_tp_pt_map[fileName] = new TH1F("stau_tp_pt", ";Tracking Particle Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 11, 1900.0, 3000.0);
+    stau_tp_eta_map[fileName] = new TH1F("stau_tp_eta", ";Tracking Particle Stau Eta; Tracking particle / 0.2", 10, -1.25, 1.25);
+    stau_tp_phi_map[fileName] = new TH1F("stau_tp_phi", ";Tracking Particle Stau #phi; Tracking particle / 0.2 radians", 16, -3.2, -3.2);
+    stau_tp_d0_map[fileName] = new TH1F("stau_tp_d0", ";Tracking Particle Stau d_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
+    stau_tp_z0_map[fileName] = new TH1F("stau_tp_z0", ";Tracking Particle Stau z_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
+    stau_matched_pt_map[fileName] = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 250.0 GeV", 11, 1900.0, 3000.0);
+    stau_velores_map[fileName] = new TH1F("stau_velores", "; NHits; |#Delta Stau Velo.| / True Stau Velo. ", 15, 6, 21);
+    stau_matched_pt_all_map[fileName] = new TH1F("stau_matched_pt_all", ";Tracking particle p_{T} [GeV]; Tracking particles (all) / 100.0 GeV", 22, 1900.0, 3000.0);
+
+    stau_nhits_map[fileName] = new TH1F("stau_nhits_map_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 6, 21);
+    stau_track_pt_map[fileName] = new TH1F("stau_track_pt", ";Stau Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
+
+    stau_matched_phi_map[fileName] = new TH1F("stau_matched_phi", ";Stau #phi; Stau / 0.2 radians", 16, -3.2, -3.2);
+    stau_matched_eta_map[fileName] = new TH1F("stau_matched_eta", ";Stau #eta; Tracking particle / 0.2", 10, -1.25, 1.25);
+    stau_track_eta_map[fileName] = new TH1F("stau_track_eta", ";Stau Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
+    stau_rxy_decay_map[fileName] = new TH1F("stau_rxy_decay_map_" + fileName, ";Monte Carlo Stau Decay Point r_{xy}; Monte Carlo Stau / 100 mm", 20, 0, 4000.0);
+    stau_velo_residuals_map[fileName] = new TH1F("stau_velo_residuals_map_" + fileName, "; Stau True Velocity - Measured Velocity [mm/ns]; Tracks / 0.5 mm/ns", 20, -5, 5);
+
+
     displaced_track_pt_map[fileName] = new TH1F("displaced_track_pt_" + fileName, ";Stau Decay Product Track p_{T} [GeV]; Tracks / 500.0 GeV", 10, 0, 5000.0);
-    displaced_track_d0_map[fileName] = new TH1F("displaced_track_d0_" + fileName, ";Stau Decay Product Track d_{0} [mm]; Tracks / 10 mm", 30, -150.0, 150.0);;
+    displaced_track_d0_map[fileName] = new TH1F("displaced_track_d0_" + fileName, ";Stau Decay Product Track d_{0} [mm]; Tracks / 10 mm", 30, -150.0, 150.0);
     displaced_track_z0_map[fileName] = new TH1F("displaced_track_z0_" + fileName, ";Stau Decay Product Track z_{0} [mm]; Tracks / 10 mm", 30, -150.0, 150.0);
-    displaced_track_eta_map[fileName] = new TH1F("displaced_track_eta_" + fileName, ";Stau Decay Product Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
-    displaced_resz0_map[fileName] = new TH1F("displaced_resz0_" + fileName, ";|Track z_{0} - Matched z_{0}|; Tracks / 0.2 mm", 25, 0, 5);;
-    displaced_resd0_map[fileName] = new TH1F("displaced_resd0_" + fileName, ";|Track d_{0} - Matched d_{0}|; Tracks / 0.2 mm", 20, 0, 2);;
-    displaced_chi2_reduced_map[fileName] = new TH1F("displaced_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);;
-    displaced_nhits_map[fileName] = new TH1F("displaced_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
-    displaced_matched_d0_map[fileName] = new TH1F("displaced_matched_d0_" + fileName, "; Tracking Particle d_{0} [mm]; Tracking particles / 20 mm", 10, 0, 200.0);;
-    displaced_matched_rxy_map[fileName] = new TH1F("displaced_matched_rxy_" + fileName, "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 50 mm", 40, 0, 2000.0);;
-    displaced_matched_eta_map[fileName] = new TH1F("displaced_matched_eta_" + fileName, "; Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);;
-    displaced_tp_d0_map[fileName] = new TH1F("displaced_tp_d0_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 20 mm", 10, 0, 200.0);;
-    displaced_tp_rxy_map[fileName] = new TH1F("displaced_tp_rxy_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 50 mm", 40, 0, 2000.0);;
-    displaced_tp_eta_map[fileName] = new TH1F("displaced_tp_eta_" + fileName, ";  Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);;
-    displaced_mcp_d0_map[fileName] = new TH1F("displaced_mcp_d0_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 10, 0, 200.0);;
-    displaced_mcp_rxy_map[fileName] = new TH1F("displaced_mcp_rxy_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 40, 0, 2000.0);;
-    displaced_mcp_eta_map[fileName] = new TH1F("displaced_mcp_eta_" + fileName, "; Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);;
-    displaced_mcp_rxy_map_clone[fileName] = new TH1F("displaced_mcp_rxy_" + fileName + "_clone", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 50 mm", 40, 0, 2000.0);;
-    displaced_tp_pt_map[fileName] = new TH1F("displaced_tp_pt_" + fileName, ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);;
-    displaced_matched_pt_map[fileName] = new TH1F("displaced_matched_pt_" + fileName, ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
-    displaced_mcp_pt_map[fileName] = new TH1F("displaced_mcp_pt_" + fileName, ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);;
+    displaced_track_eta_map[fileName] = new TH1F("displaced_track_eta_" + fileName, ";Stau Decay Product Track #eta; Tracks / 0.2", 30, -1.5, 1.5);
+    displaced_resz0_map[fileName] = new TH1F("displaced_resz0_" + fileName, ";|Track z_{0} - Matched z_{0}|; Tracks / 0.2 mm", 25, 0, 5);
+    displaced_resd0_map[fileName] = new TH1F("displaced_resd0_" + fileName, ";|Track d_{0} - Matched d_{0}|; Tracks / 0.2 mm", 20, 0, 2);
+    displaced_chi2_reduced_map[fileName] = new TH1F("displaced_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 10, 0, 5);
+    displaced_nhits_map[fileName] = new TH1F("displaced_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
+    displaced_matched_d0_map[fileName] = new TH1F("displaced_matched_d0_" + fileName, "; Tracking Particle d_{0} [mm]; Tracking particles / 6 mm", 10, 0, 150.0);
+    displaced_matched_rxy_map[fileName] = new TH1F("displaced_matched_rxy_" + fileName, "; Tracking Particle Vertex r_{xy} [mm]; Tracking particles / 20 mm", 15, 0, 600.0);
+    displaced_matched_eta_map[fileName] = new TH1F("displaced_matched_eta_" + fileName, "; Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);
+    displaced_tp_d0_map[fileName] = new TH1F("displaced_tp_d0_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 6 mm", 10, 0, 150.0);
+    displaced_tp_rxy_map[fileName] = new TH1F("displaced_tp_rxy_" + fileName, "; |Displaced Tracking Tracking Particle d_{0}| [mm]; Tracking Particle Stau / 20 mm", 15, 0, 600.0);
+    displaced_tp_eta_map[fileName] = new TH1F("displaced_tp_eta_" + fileName, ";  Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);
+    displaced_mcp_d0_map[fileName] = new TH1F("displaced_mcp_d0_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 10, 0, 150.0);
+    displaced_mcp_rxy_map[fileName] = new TH1F("displaced_mcp_rxy_" + fileName, ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 15, 0, 600.0);
+    displaced_mcp_eta_map[fileName] = new TH1F("displaced_mcp_eta_" + fileName, "; Tracking Particle #eta; Tracking particles / 0.2", 24, -2.4, 2.4);
+    displaced_mcp_rxy_map_clone[fileName] = new TH1F("displaced_mcp_rxy_" + fileName + "_clone", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 20 mm", 15, 0, 600.0);
+    displaced_tp_pt_map[fileName] = new TH1F("displaced_tp_pt_" + fileName, ";Displaced Tracking Particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
+    displaced_matched_pt_map[fileName] = new TH1F("displaced_matched_pt_" + fileName, ";Tracking Particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
+    displaced_mcp_pt_map[fileName] = new TH1F("displaced_mcp_pt_" + fileName, ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
     fake_track_pt_map[fileName] = new TH1F("fake_track_pt_" + fileName, ";Fake Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 500.0);
-    fake_track_eta_map[fileName] = new TH1F("fake_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
+    fake_track_eta_map[fileName] = new TH1F("fake_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 30, -1.5, 1.5);
     fake_track_d0_map[fileName] = new TH1F("fake_track_d0_" + fileName, ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     fake_track_z0_map[fileName] = new TH1F("fake_track_z0_" + fileName, ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     fake_track_chi2_reduced_map[fileName] = new TH1F("displaced_overlay_track_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
-    fake_track_nhits_map[fileName] = new TH1F("fake_track_nhits_map_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
-    displaced_overlay_track_nhits_map[fileName] = new TH1F("displaced_overlay_track_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);;
+    fake_track_nhits_map[fileName] = new TH1F("fake_track_nhits_map_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
+    displaced_overlay_track_nhits_map[fileName] = new TH1F("displaced_overlay_track_nhits_" + fileName, ";Number of Tracker Hits; Tracks / Hit", 15, 0, 15);
     displaced_overlay_track_pt_map[fileName] = new TH1F("displaced_overlay_track_pt_" + fileName, ";Fake Track p_{T} [GeV]; Tracks / 10.0 GeV", 50, 0, 500.0);
-    displaced_overlay_track_eta_map[fileName] = new TH1F("displaced_overlay_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 25, -2.5, 2.5);
+    displaced_overlay_track_eta_map[fileName] = new TH1F("displaced_overlay_track_eta_" + fileName, ";Fake Track #eta; Tracks / 0.2", 30, -1.5, 1.5);
     displaced_overlay_track_d0_map[fileName] = new TH1F("displaced_overlay_track_d0_" + fileName, ";Fake Track d_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     displaced_overlay_track_z0_map[fileName] = new TH1F("displaced_overlay_track_z0_" + fileName, ";Fake Track z_{0}; Tracking particles / 25 mm", 20, -250.0, 250.0);
     displaced_overlay_track_chi2_reduced_map[fileName] = new TH1F("fake_track_chi2_reduced_" + fileName, "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
@@ -163,7 +236,7 @@ void SetPlotStyle();
 void mySmallText(Double_t x, Double_t y, Color_t color, char* text);
 bool approximatelyEqual(float a, float b, float epsilon); // helper functions to identify duplicate stau tracks
 bool isApproximatelyEqualToAny(const std::vector<float>& vec, float value, float epsilon);
-void rootAnalyzer(const TString fileName);
+void rootAnalyzer(const TString fileName, std::string timing);
 
 // Function to compute the mean of a vector
 float computeMean(const std::vector<float>& vec) {
@@ -196,8 +269,13 @@ float computeStandardError(const std::vector<float>& vec, float stdDev) {
 // Will output plots as pdfs to a subdirectory named according to the filename
 
 void rootAnalyzer(
-const TString fileName
+const TString fileName,
+std::string timing
 ){  
+
+  double stau_mass = (fileName[0] == '1') ? 1000.0 :
+                       (fileName[0] == '2') ? 2500.0 :
+                       (fileName[0] == '4') ? 4000.0 : 0.0;
     
     // Example Usage: rootAnalyzer("1000_0.05_reco") 
     // Will output plots as pdfs to a subdirectory named according to the filename
@@ -210,21 +288,68 @@ const TString fileName
     // ----------------------------------------------------------------------------------------------------------------
     // Read NTuples from one file
     TChain* MCPs = new TChain("MCPs");
-    MCPs->Add("recoRootFiles/" + fileName + "_reco.root");
+    std::string rootFileDir = "recoRootFiles"; 
+    if (timing == "tight"){
+      rootFileDir = "tightTimingRecoRootFiles/"; 
+    }
+    if (timing == "medium"){
+      rootFileDir = "mediumTimingRecoRootFiles/";
+    }
+    if (timing == "loose"){
+      rootFileDir = "looseTimingRecoRootFiles/";
+    }
+    if (timing == "mediumFix"){
+      rootFileDir = "timingFixMediumRootFiles/";
+    }
+    if (timing == "ITMedium"){
+      rootFileDir = "timingMediumITSeedingRootFiles/";
+    }
+    if (timing == "ITMediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBITSeedingRecoRootFiles/";
+    }
+    if (timing == "ITOTMediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBITOTSeedingRecoRootFiles/";
+    }
+    if (timing == "mediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBRecoRootFilesStripsOn/";
+    }
+    if (timing == "mediumNoBIBPropBack"){
+      rootFileDir = "mediumTimingNoBIBPropBackStripsOn/";
+    }
+    if (timing == "mediumNoBIBStripsOff"){
+      rootFileDir = "mediumTimingNoBIBStripsOff/";
+    }
+    if (timing == "mediumPrompt"){
+      rootFileDir = "MediumTimingPrompt10pBIB/";
+    }
+    if (timing == "tightPrompt"){
+      rootFileDir = "TightTimingPrompt10pBIB/";
+    }
+    if (timing == "loosePrompt"){
+      rootFileDir = "LooseTimingPrompt10pBIB/";
+    }
+    if (timing == "mediumDisplaced"){
+      rootFileDir = "MediumTimingTwoPasses0pBIB/";
+    }
+    if (timing == "openHouse"){
+      rootFileDir = "openHouseRootFiles/";
+    }
+
+    MCPs->Add(rootFileDir + fileName + "_reco.root");
     TChain* StauMCPs = new TChain("StauMCPs");
-    StauMCPs->Add("recoRootFiles/" + fileName + "_reco.root");
+    StauMCPs->Add(rootFileDir + fileName + "_reco.root");
     TChain* StauDecayProductsMCPs = new TChain("StauDecayProductsMCPs");
-    StauDecayProductsMCPs->Add("recoRootFiles/" + fileName + "_reco.root");
+    StauDecayProductsMCPs->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllTracks = new TChain("AllTracks");
-    AllTracks->Add("recoRootFiles/" + fileName + "_reco.root");
+    AllTracks->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllStauTracks = new TChain("AllStauTracks");
-    AllStauTracks->Add("recoRootFiles/" + fileName + "_reco.root");
+    AllStauTracks->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllDecayProductTracks = new TChain("AllDecayProductTracks");
-    AllDecayProductTracks->Add("recoRootFiles/" + fileName + "_reco.root");
+    AllDecayProductTracks->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllFakeTracks = new TChain("AllFakeTracks");
-    AllFakeTracks->Add("recoRootFiles/" + fileName + "_reco.root");
+    AllFakeTracks->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllHits = new TChain("AllHits");
-    AllHits->Add("recoRootFiles/" + fileName + "_reco.root");
+    AllHits->Add(rootFileDir + fileName + "_reco.root");
 
     if (MCPs->GetEntries() == 0 || StauMCPs->GetEntries() == 0 || StauDecayProductsMCPs->GetEntries() == 0 || AllTracks->GetEntries() == 0 || AllStauTracks->GetEntries() == 0 || AllDecayProductTracks->GetEntries() == 0 || AllFakeTracks->GetEntries() == 0 || AllHits->GetEntries() == 0) {
         cout << "A file / branch doesn't exist or is empty, returning..." << "\n";
@@ -284,6 +409,9 @@ const TString fileName
     std::vector<float>* chi2_red;
 
     std::vector<float>* LC_stau_pt_match;
+    std::vector<float>* LC_stau_reco_velo;
+    std::vector<float>* LC_stau_true_velo;
+    std::vector<float>* LC_stau_velo_res;
     std::vector<float>* LC_stau_track_pt;
     std::vector<float>* LC_stau_track_eta;
     std::vector<float>* LC_stau_eta_match;
@@ -401,6 +529,9 @@ const TString fileName
     TBranch* b_chi2_red;
 
     TBranch* b_LC_stau_pt_match;
+    TBranch* b_LC_stau_reco_velo;
+    TBranch* b_LC_stau_true_velo;
+    TBranch* b_LC_stau_velo_res;
     TBranch* b_LC_stau_track_pt;
     TBranch* b_LC_stau_track_eta;
     TBranch* b_LC_stau_eta_match;
@@ -519,6 +650,9 @@ const TString fileName
     chi2_red = 0;
 
     LC_stau_pt_match = 0;
+    LC_stau_reco_velo = 0;
+    LC_stau_true_velo = 0;
+    LC_stau_velo_res = 0;
     LC_stau_track_pt = 0;
     LC_stau_track_eta = 0;
     LC_stau_eta_match = 0;
@@ -638,6 +772,9 @@ const TString fileName
     AllTracks->SetBranchAddress("chi2_red", &chi2_red, &b_chi2_red);
 
     AllStauTracks->SetBranchAddress("LC_stau_pt_match", &LC_stau_pt_match, &b_LC_stau_pt_match);
+    AllStauTracks->SetBranchAddress("LC_stau_reco_velo", &LC_stau_reco_velo, &b_LC_stau_reco_velo);
+    AllStauTracks->SetBranchAddress("LC_stau_true_velo", &LC_stau_true_velo, &b_LC_stau_true_velo);
+    AllStauTracks->SetBranchAddress("LC_stau_velo_res", &LC_stau_velo_res, &b_LC_stau_velo_res);
     AllStauTracks->SetBranchAddress("LC_stau_track_pt", &LC_stau_track_pt, &b_LC_stau_track_pt);
     AllStauTracks->SetBranchAddress("LC_stau_track_eta", &LC_stau_track_eta, &b_LC_stau_track_eta);
     AllStauTracks->SetBranchAddress("LC_stau_eta_match", &LC_stau_eta_match, &b_LC_stau_eta_match);
@@ -708,39 +845,43 @@ const TString fileName
     // ----------------------------------------------------------------------------------------------------------------
     // Declare histograms to be written to and plotted
 
-    TH1F* stau_mcp_pt = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
-    TH1F* stau_mcp_eta = new TH1F("stau_mcp_eta", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1", 25, -2.5, 2.5);
+    TH1F* stau_mcp_pt = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 100.0 GeV", 11, 1900.0, 3000.0);
+    TH1F* stau_mcp_p = new TH1F("stau_mcp_p", ";Monte Carlo Stau p [GeV]; Tracking particles / 100.0 GeV", 20, 0, 5000.0);
+    TH1F* stau_mcp_E = new TH1F("stau_mcp_E", ";Monte Carlo Stau Energy [GeV]; Tracking particles / 100.0 GeV", 24, 4000.0, 5200.0);
+    TH2F* stau_mcp_pt_eta = new TH2F("stau_mcp_pt_eta", ";#eta ; p_{T} [GeV]", 15, -1.5, 1.5, 20, 0, 5000.0);
+    TH1F* stau_mcp_eta = new TH1F("stau_mcp_eta", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1", 15, -1.25, 1.25);
     TH1F* stau_mcp_phi = new TH1F("stau_mcp_phi", ";Monte Carlo Stau Eta; Monte Carlo Stau / 0.1 radians", 16, -3.2, -3.2);
     TH1F* stau_mcp_d0 = new TH1F("stau_mcp_d0", ";Monte Carlo Stau d_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
     TH1F* stau_mcp_z0 = new TH1F("stau_mcp_z0", ";Monte Carlo Stau z_{0}; Monte Carlo Stau / 10 mm", 50, -250.0, 250.0);
 
-    TH1F* stau_tp_pt = new TH1F("stau_tp_pt", ";Tracking Particle Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
-    TH1F* stau_tp_eta = new TH1F("stau_tp_eta", ";Tracking Particle Stau Eta; Tracking particle / 0.2", 25, -2.5, 2.5);
-    TH1F* stau_tp_phi = new TH1F("stau_tp_phi", ";Tracking Particle Stau Phi; Tracking particle / 0.2 radians", 16, -3.2, -3.2);
+    TH1F* stau_tp_pt = new TH1F("stau_tp_pt", ";Tracking Particle Stau p_{T} [GeV]; Tracking particles / 250.0 GeV", 11, 1900.0, 3000.0);
+    TH1F* stau_tp_eta = new TH1F("stau_tp_eta", ";Tracking Particle Stau Eta; Tracking particle / 0.2", 15, -1.25, 1.25);
+    TH1F* stau_tp_phi = new TH1F("stau_tp_phi", ";Tracking Particle Stau #phi; Tracking particle / 0.2 radians", 16, -3.2, -3.2);
     TH1F* stau_tp_d0 = new TH1F("stau_tp_d0", ";Tracking Particle Stau d_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
     TH1F* stau_tp_z0 = new TH1F("stau_tp_z0", ";Tracking Particle Stau z_{0}; Tracking Particle Stau / 10 mm", 50, -250.0, 250.0);
 
     TH1F* displaced_mcp_pt = new TH1F("displaced_mcp_pt", ";Monte Carlo Stau Decay Product p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
-    TH1F* displaced_mcp_eta = new TH1F("displaced_mcp_eta", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2", 25, -2.5, 2.5);
+    TH1F* displaced_mcp_eta = new TH1F("displaced_mcp_eta", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2", 30, -1.5, 1.5);
     TH1F* displaced_mcp_phi = new TH1F("displaced_mcp_phi", ";Monte Carlo Stau Decay Product #eta; Monte Carlo Stau / 0.2 radians", 16, -3.2, -3.2);
-    TH1F* displaced_mcp_d0 = new TH1F("displaced_mcp_d0", ";Monte Carlo Stau Decay Product d_{0}; Monte Carlo Stau / 25 mm", 20, -250.0, 250.0);
+    TH1F* displaced_mcp_d0 = new TH1F("displaced_mcp_d0", ";Monte Carlo Stau Decay Product |d_{0}|; Monte Carlo Stau / 10 mm", 10, 0, 100.0);
+    TH1F* displaced_mcp_rxy = new TH1F("displaced_mcp_rxy", ";Monte Carlo Stau Decay Product r_{xy}; Monte Carlo Stau / 10 mm", 25, 0, 500.0);
     TH1F* displaced_mcp_z0 = new TH1F("displaced_mcp_z0", ";Monte Carlo Stau Decay Product z_{0}; Monte Carlo Stau / 25 mm", 20, -250.0, 250.0);
 
     TH1F* displaced_tp_pt = new TH1F("displaced_tp_pt", ";Displaced Tracking particle p_{T} [GeV]; Displaced tracking particles / 500.0 GeV", 10, 0, 5000.0);
-    TH1F* displaced_tp_eta = new TH1F("displaced_tp_eta", ";Displaced Tracking Particle #eta; Displaced tracking particle / 0.2", 25, -2.5, 2.5);
+    TH1F* displaced_tp_eta = new TH1F("displaced_tp_eta", ";Displaced Tracking Particle #eta; Displaced tracking particle / 0.2", 15, -1.5, 1.5);
     TH1F* displaced_tp_phi = new TH1F("displaced_tp_phi", ";Displaced Tracking Particle Phi; Displaced tracking particle / 0.2 radians", 16, -3.2, -3.2);
     TH1F* displaced_tp_d0 = new TH1F("displaced_tp_d0", ";Displaced Tracking Tracking Particle d_{0}; Tracking Particle Stau / 25 mm", 20, -250.0, 250.0);
     TH1F* displaced_tp_z0 = new TH1F("displaced_tp_z0", ";Displaced Tracking Tracking Particle z_{0}; Tracking Particle Stau / 25 mm", 20, -250.0, 250.0);
 
-    TH1F* stau_matched_pt = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 250.0 GeV", 10, 0, 2500.0);
-    TH1F* stau_matched_pt_all = new TH1F("stau_matched_pt_all", ";Tracking particle p_{T} [GeV]; Tracking particles (all) / 100.0 GeV", 30, 2000.0, 5000.0);
+    TH1F* stau_matched_pt = new TH1F("stau_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 250.0 GeV", 11, 1900.0, 3000.0);
+    TH1F* stau_matched_pt_all = new TH1F("stau_matched_pt_all", ";Tracking particle p_{T} [GeV]; Tracking particles (all) / 100.0 GeV", 11, 1900.0, 3000.0);
     TH1F* displaced_matched_pt = new TH1F("displaced_matched_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 500.0 GeV", 10, 0, 5000.0);
     TH1F* stau_track_pt = new TH1F("stau_track_pt", ";Stau Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
     TH1F* displaced_track_pt = new TH1F("displaced_track_pt", ";Displaced Stau Decay Product Track p_{T} [GeV]; Tracks / 100.0 GeV", 50, 0, 5000.0);
 
-    TH1F* stau_matched_eta = new TH1F("stau_matched_eta", ";Stau #eta; Tracking particle / 0.2", 25, -2.5, 2.5);
+    TH1F* stau_matched_eta = new TH1F("stau_matched_eta", ";Stau #eta; Tracking particle / 0.2", 15, -1.25, 1.25);
     TH1F* stau_matched_eta_all = new TH1F("stau_matched_eta_all", ";Stau #eta; Tracking particle (all) / 0.1", 50, -2.5, 2.5);
-    TH1F* displaced_matched_eta = new TH1F("displaced_matched_eta", ";Tracking Particle #eta; Tracking particle / 0.2", 25, -2.5, 2.5);
+    TH1F* displaced_matched_eta = new TH1F("displaced_matched_eta", ";Tracking Particle #eta; Tracking particle / 0.2", 15, -1.5, 1.5);
     TH1F* stau_track_eta = new TH1F("stau_track_eta", ";Stau Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
     TH1F* displaced_track_eta = new TH1F("displaced_track_eta", ";Displaced Stau Decay Product Track #eta; Tracks / 0.1", 50, -2.5, 2.5);
 
@@ -759,11 +900,16 @@ const TString fileName
     TH1F* displaced_PtRel = new TH1F("displaced_PtRel", ";|((Displaced Track p_{T} - Matched p_{T}) / Matched p_{T})|; Tracks / 0.1", 20, 0, 2);
     TH1F* PtRelvsPt = new TH1F("PtRelvsPt", ";Tracking particle p_{T} [GeV];p_{T} resolution ", 10, 0, 5000.0);
 
+    TH1F* nhits_vs_d0 = new TH1F("nhits_vs_d0", ";d_{0} [mm] ; NHits", 10, 0, 100.0);
+    TH1F* nhits_vs_rxy = new TH1F("nhits_vs_rxy", ";r_{xy} [mm]; NHits ", 25, 0, 500.0);
+
     TH1F* stau_chi2_reduced = new TH1F("stau_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
     TH1F* displaced_chi2_reduced = new TH1F("displaced_chi2_reduced", "; #chi^{2} / ndf; Tracks / 0.5", 20, 0, 10);
 
     TH1F* stau_resPt = new TH1F("stau_resPt", ";stau Track p_{T} - Matched p_{T}; Tracks / 100.0 GeV", 100, -5000, 5000);
     TH1F* stau_resEta = new TH1F("stau_resEta", ";stau Track #eta - Matched #eta; Tracks / 0.01", 20, -0.1, 0.1);
+    TH1F* stau_true_velocity = new TH1F("stau_true_velocity", "; Stau True Velocity [mm/ns]; Matched Staus / 2 mm/ns", 17, 150, 184);
+    TH1F* stau_velo_residuals = new TH1F("stau_velo_residuals", "; Stau True Velocity - Measured Velocity [mm/ns]; Tracks / 0.5 mm/ns", 20, -5, 5);
     TH1F* stau_resz0 = new TH1F("stau_resz0", ";stau Track z_{0} - Matched z_{0}; Tracks / 1 mm", 20, -10, 10);
     TH1F* stau_resd0 = new TH1F("stau_resd0", ";stau Track d_{0} - Matched d_{0}; Tracks / 1 mm", 20, -10, 10);
 
@@ -797,20 +943,33 @@ const TString fileName
 
     char ctxt[500];
     TCanvas c;
-    TString dir = "BIBPlots" + fileName + "";
+    TCanvas cLog1;
+    cLog1.SetLogy();
+    TString dir = rootFileDir + "Plots_" + fileName + "";
     gSystem->mkdir(dir);
     TString DIR = dir + "/";
 
     // Counters
     int numRecoableStaus = 0;
     int numMatchedStauTracks = 0;
+    int nFakeTrack = 0;
+    int nEvents = 0; 
     int numRecoableDisplacedParticles = 0;
+    int numTotalDisplacedParticles = 0;
     int numMatchedDisplacedTracks = 0;
     int nPtBins = 10;
+    int nVeloBins = 15;
+    int nNHitsBins_rxy = 25;
+    int nNHitsBins_d0 = 10;
+    int nStauPrompt = 0;
+    std::vector<std::vector<float> > rxyByBin(nNHitsBins_rxy + 1);
+    std::vector<std::vector<float> > d0ByBin(nNHitsBins_d0 + 1);
     std::vector<std::vector<float>> ptResByBin(nPtBins);
+    std::vector<std::vector<float>> veloResByBin(nVeloBins);
 
     // Event loop
     for (int iEvt = 0; iEvt < StauMCPs->GetEntries(); ++iEvt) {
+      ++nEvents;
       // Load the entry data into the branch
       StauMCPs->GetEntry(iEvt);
       AllStauTracks->GetEntry(iEvt);
@@ -855,18 +1014,35 @@ const TString fileName
             trueHasTrack[1] = true;
           }
         }
-        stau_mcp_pt->Fill(mcp_stau_pt->at(0));
-        stau_mcp_eta->Fill(mcp_stau_eta->at(0));
-        stau_mcp_phi->Fill(mcp_stau_phi->at(0));
-        stau_mcp_d0->Fill(mcp_stau_d0->at(0));
-        stau_mcp_z0->Fill(mcp_stau_z0->at(0));
-        if (mcp_stau_pt->size() > 1){
+        if (prod_stau_vertex_r->at(iStau) < 1.0){
+          nStauPrompt++;
+          stau_mcp_pt->Fill(mcp_stau_pt->at(iStau));
+          stau_mcp_p->Fill(mcp_stau_pt->at(iStau)*std::cosh(mcp_stau_eta->at(iStau)));
+          stau_mcp_E->Fill(sqrt(mcp_stau_pt->at(iStau)*std::cosh(mcp_stau_eta->at(iStau)) * mcp_stau_pt->at(iStau)*std::cosh(mcp_stau_eta->at(iStau)) + stau_mass*stau_mass)); // change for diff masses FIXME read in by file name
+          stau_mcp_pt_eta->Fill(mcp_stau_eta->at(iStau), mcp_stau_pt->at(iStau));
+          stau_mcp_pt_map[fileName]->Fill(mcp_stau_pt->at(iStau));
+          stau_mcp_eta->Fill(mcp_stau_eta->at(iStau));
+          stau_mcp_eta_map[fileName]->Fill(mcp_stau_eta->at(iStau));
+          stau_mcp_phi->Fill(mcp_stau_phi->at(iStau));
+          stau_mcp_phi_map[fileName]->Fill(mcp_stau_phi->at(iStau));
+          stau_mcp_d0->Fill(mcp_stau_d0->at(iStau));
+          stau_mcp_z0->Fill(mcp_stau_z0->at(iStau));
+          stau_rxy_decay_map[fileName]->Fill(prod_stau_endpoint_r->at(iStau));
+        }
+        
+        /*if (mcp_stau_pt->size() > 1 && iStau > 1){
+          stau_mcp_p->Fill(mcp_stau_pt->at(1)*std::cosh(mcp_stau_eta->at(1)));
+          stau_mcp_E->Fill(sqrt(mcp_stau_pt->at(1)*std::cosh(mcp_stau_eta->at(1)) * mcp_stau_pt->at(1)*std::cosh(mcp_stau_eta->at(1)) + 1000.0*1000.0));
           stau_mcp_pt->Fill(mcp_stau_pt->at(1));
+          stau_mcp_pt_eta->Fill(mcp_stau_eta->at(1), mcp_stau_pt->at(1));
+          stau_mcp_pt_map[fileName]->Fill(mcp_stau_pt->at(1));
           stau_mcp_eta->Fill(mcp_stau_eta->at(1));
+          stau_mcp_eta_map[fileName]->Fill(mcp_stau_eta->at(1));
           stau_mcp_phi->Fill(mcp_stau_phi->at(1));
+          stau_mcp_phi_map[fileName]->Fill(mcp_stau_phi->at(1));
           stau_mcp_d0->Fill(mcp_stau_d0->at(1));
           stau_mcp_z0->Fill(mcp_stau_z0->at(1));
-        }
+        }*/
         
 
         // FIXME fill stau mcp histograms 
@@ -875,22 +1051,29 @@ const TString fileName
       if (trueReconstructable[0]){ // fill reconstructable staus
         numRecoableStaus++;
         stau_tp_pt->Fill(mcp_stau_pt->at(0));
+        stau_tp_pt_map[fileName]->Fill(mcp_stau_pt->at(0));
         stau_tp_eta->Fill(mcp_stau_eta->at(0));
+        stau_tp_eta_map[fileName]->Fill(mcp_stau_eta->at(0));
         stau_tp_phi->Fill(mcp_stau_phi->at(0));
+        stau_tp_phi_map[fileName]->Fill(mcp_stau_phi->at(0));
         stau_tp_d0->Fill(mcp_stau_d0->at(0));
         stau_tp_z0->Fill(mcp_stau_z0->at(0));
       } 
       if (trueReconstructable[1] && trueReconstructable.size() > 1){
         numRecoableStaus++;
         stau_tp_pt->Fill(mcp_stau_pt->at(1));
+        stau_tp_pt_map[fileName]->Fill(mcp_stau_pt->at(1));
         stau_tp_eta->Fill(mcp_stau_eta->at(1));
+        stau_tp_eta_map[fileName]->Fill(mcp_stau_eta->at(1));
         stau_tp_phi->Fill(mcp_stau_phi->at(1));
+        stau_tp_phi_map[fileName]->Fill(mcp_stau_phi->at(1));
         stau_tp_d0->Fill(mcp_stau_d0->at(1));
         stau_tp_z0->Fill(mcp_stau_z0->at(1));
       } 
 
       std::vector<float > previousEtas;
       for (unsigned int iStauTrack = 0; iStauTrack < LC_stau_pt_match->size(); ++iStauTrack){ 
+        std::cout << "test 0" << "\n";
 
         // Use std::find to check if the value exists in the vector
         if (isApproximatelyEqualToAny(previousEtas, LC_stau_eta_match->at(iStauTrack), 0.001)) { // FIXME do this with parent / daughter mcp relations later!! 
@@ -898,13 +1081,29 @@ const TString fileName
         }
         else{
           numMatchedStauTracks++;
+          stau_matched_pt_map[fileName]->Fill(LC_stau_pt_match->at(iStauTrack));
           stau_matched_pt->Fill(LC_stau_pt_match->at(iStauTrack));
           stau_matched_eta->Fill(LC_stau_eta_match->at(iStauTrack));
+          stau_matched_eta_map[fileName]->Fill(LC_stau_eta_match->at(iStauTrack));
+          stau_matched_phi_map[fileName]->Fill(LC_stau_phi_match->at(iStauTrack));
         }
+        stau_nhits_map[fileName]->Fill(LC_stau_nhits->at(iStauTrack));
+        stau_chi2_reduced_map[fileName]->Fill(LC_stau_chi2->at(iStauTrack) / LC_stau_ndf->at(iStauTrack));
         
         stau_matched_pt_all->Fill(LC_stau_pt_match->at(iStauTrack));
         previousEtas.push_back(LC_stau_eta_match->at(iStauTrack));
         stau_track_pt->Fill(LC_stau_track_pt->at(iStauTrack));
+        
+        int veloBin = stau_nhits_map[fileName]->FindBin(LC_stau_nhits->at(iStauTrack));
+        std::cout << "velobin: " << veloBin << "\n";
+        std::cout << "LC_stau_nhits->at(iStauTrack): " << LC_stau_nhits->at(iStauTrack) << "\n";
+        stau_true_velocity->Fill(LC_stau_true_velo->at(iStauTrack));
+        stau_velo_residuals->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
+        stau_velo_residuals_map[fileName]->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
+        if (veloBin > 0) veloResByBin[veloBin - 1].push_back(LC_stau_velo_res->at(iStauTrack) / LC_stau_true_velo->at(iStauTrack)); // COMMENT OUT WHEN RUNNING OVER OLDER SAMPLES
+        
+        
+        stau_track_pt_map[fileName]->Fill(LC_stau_track_pt->at(iStauTrack));
         
         stau_matched_eta_all->Fill(LC_stau_eta_match->at(iStauTrack));
         stau_track_eta->Fill(LC_stau_track_eta->at(iStauTrack)); // fixme fill other track properties
@@ -921,6 +1120,7 @@ const TString fileName
       /// PROCESS STAU DECAY PRODUCTS
 
       for (unsigned int iDP = 0; iDP < mcp_daughter_pt->size(); ++iDP){ // Loop through staus in event, will either be 2, 4, or 6
+        numTotalDisplacedParticles++;
         displaced_mcp_pt->Fill(mcp_daughter_pt->at(iDP));
         displaced_mcp_eta->Fill(mcp_daughter_eta->at(iDP));
         displaced_mcp_eta_map[fileName]->Fill(mcp_daughter_eta->at(iDP));
@@ -936,14 +1136,12 @@ const TString fileName
           displaced_tp_phi->Fill(mcp_daughter_phi->at(iDP));
           displaced_tp_d0->Fill(mcp_daughter_d0->at(iDP));
           displaced_tp_z0->Fill(mcp_daughter_z0->at(iDP));
-        }
-
-        if(mcp_daughter_track_reconstructable_bool->at(iDP)){
           displaced_tp_eta_map[fileName]->Fill(mcp_daughter_eta->at(iDP));
           displaced_tp_pt_map[fileName]->Fill(mcp_daughter_pt->at(iDP));
           displaced_tp_rxy_map[fileName]->Fill(mcp_daughter_r_vertex->at(iDP));
           displaced_tp_d0_map[fileName]->Fill(abs(mcp_daughter_d0->at(iDP)));
         }
+
         displaced_mcp_pt_map[fileName]->Fill(mcp_daughter_pt->at(iDP));
         displaced_mcp_d0_map[fileName]->Fill(abs(mcp_daughter_d0->at(iDP)));
         displaced_mcp_rxy_map[fileName]->Fill(abs(mcp_daughter_r_vertex->at(iDP)));
@@ -970,6 +1168,11 @@ const TString fileName
 
         displaced_PtRel->Fill(abs(LC_daughter_track_pt->at(iDPTrack) - LC_daughter_pt_match->at(iDPTrack)) / LC_daughter_pt_match->at(iDPTrack));
         int ptBin = displaced_matched_pt->FindBin(LC_daughter_pt_match->at(iDPTrack));
+        int rxyBin = displaced_mcp_rxy->FindBin(LC_daughter_r_vertex_match->at(iDPTrack));
+        int d0Bin = displaced_mcp_d0->FindBin(abs(LC_daughter_d0->at(iDPTrack)));
+        std::cout << "rxyBin: " << rxyBin << " and d0Bin: " << d0Bin << "\n";
+        rxyByBin[rxyBin - 1].push_back(LC_daughter_nhits->at(iDPTrack));
+        d0ByBin[d0Bin - 1].push_back(LC_daughter_nhits->at(iDPTrack));
         ptResByBin[ptBin - 1].push_back(abs(LC_daughter_track_pt->at(iDPTrack) - LC_daughter_pt_match->at(iDPTrack)) / LC_daughter_pt_match->at(iDPTrack));
         
         displaced_chi2_reduced->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
@@ -1004,6 +1207,7 @@ const TString fileName
       //std::cout << "fake_pt->size(): " << fake_d0->size() << "\n";
       //std::cout << "fake_pt->size(): " << fake_z0->size() << "\n";
       for (unsigned int iFakeTrk = 0; iFakeTrk < fake_pt->size(); ++iFakeTrk){ // Fill fake track properties
+        ++nFakeTrack;
         fake_track_pt->Fill(fake_pt->at(iFakeTrk));
         fake_track_eta->Fill(fake_eta->at(iFakeTrk));
         fake_track_d0->Fill(fake_d0->at(iFakeTrk));
@@ -1025,9 +1229,37 @@ const TString fileName
     PtRelvsPt->SetBinError(bin, computeStandardError(ptResByBin[bin], computeStandardDeviation(ptResByBin[bin], computeMean(ptResByBin[bin]))));
   }
 
+  for (int bin = 0; bin < nNHitsBins_rxy; ++bin){
+    nhits_vs_rxy->SetBinContent(bin, computeMean(rxyByBin[bin]));
+    nhits_vs_rxy->SetBinError(bin, computeStandardError(rxyByBin[bin], computeStandardDeviation(rxyByBin[bin], computeMean(rxyByBin[bin]))));
+  }
+
+  for (int bin = 0; bin < nNHitsBins_d0; ++bin){
+    nhits_vs_d0->SetBinContent(bin, computeMean(d0ByBin[bin]));
+    nhits_vs_d0->SetBinError(bin, computeStandardError(d0ByBin[bin], computeStandardDeviation(d0ByBin[bin], computeMean(d0ByBin[bin]))));
+  }
+  
+  for (int bin = 0; bin < nVeloBins; ++bin){
+    std::cout << "test 1" << "\n";
+    stau_velores_map[fileName]->SetBinContent(bin, computeMean(veloResByBin[bin]));
+    stau_velores_map[fileName]->SetBinError(bin, computeStandardError(veloResByBin[bin], computeStandardDeviation(veloResByBin[bin], computeMean(veloResByBin[bin]))));
+  }
+
   /// Draw and save histograms
+  c.cd();
   stau_mcp_pt->Draw();
   c.SaveAs(DIR + "stau_mcp_pt.pdf");
+  stau_mcp_p->Draw();
+  c.SaveAs(DIR + "stau_mcp_p.pdf");
+  cLog1.cd();
+  stau_mcp_E->Draw();
+  cLog1.SaveAs(DIR + "stau_mcp_E.pdf");
+  stau_true_velocity->Scale(1.0 / stau_true_velocity->Integral());
+  stau_true_velocity->Draw("HIST"); 
+  cLog1.SaveAs(DIR + "stau_true_velo.pdf");
+  c.cd();
+  stau_mcp_pt_eta->Draw();
+  c.SaveAs(DIR + "stau_mcp_pt_eta.pdf");
   stau_mcp_eta->Draw();
   c.SaveAs(DIR + "stau_mcp_eta.pdf");
   stau_mcp_phi->Draw();
@@ -1042,6 +1274,9 @@ const TString fileName
   c.SaveAs(DIR + "stau_matched_eta.pdf");
   stau_track_pt->Draw();
   c.SaveAs(DIR + "stau_track_pt.pdf");
+  
+  stau_velo_residuals->Draw();
+  c.SaveAs(DIR + "stau_track_velo_residuals.pdf");
   stau_track_eta->Draw();
   c.SaveAs(DIR + "stau_track_eta.pdf");
 
@@ -1054,6 +1289,57 @@ const TString fileName
   c.SaveAs(DIR + "displaced_matched_eta.pdf");
   displaced_track_pt->Draw();
   c.SaveAs(DIR + "displaced_track_pt.pdf");
+  /*
+  double d0_min = 0, d0_max = 90;  // Adjust based on data
+  double r_min = 0, r_max = 110;  // Adjust based on data
+  const int nBins = 10;  
+
+  // Histogram to accumulate NHits
+  TH1D h_mean_rxy("h_mean", "NHits vs. r_xy", nBins, r_min, r_max);
+  TH1D h_mean_d0("h_mean", "NHits vs. d_0", nBins, d0_min, d0_max);
+
+  // Fill histogram
+  for (size_t i = 0; i < r_xy.size(); i++) {
+    h_mean_rxy.Fill(r_xy[i], nHits[i]);
+    h_mean_d0.Fill(d_0[i], nHits[i]);
+  }
+
+  // Store binned values
+  std::vector<double> bin_centers_rxy, mean_values_rxy, std_devs_rxy;
+  std::vector<double> bin_centers_d0, mean_values_d0, std_devs_d0;
+    
+  for (int i = 1; i <= nBins; i++) {
+    double count = h_mean_rxy.GetBinContent(i);
+    if (count > 0) { // Avoid empty bins
+          bin_centers_rxy.push_back(h_mean_rxy.GetBinCenter(i));
+          mean_values_rxy.push_back(h_mean_rxy.GetBinContent(i));  // Mean NHits
+          std_devs_rxy.push_back(h_mean_rxy.GetBinError(i));  // Standard deviation
+      }
+  }
+
+  for (int i = 1; i <= nBins; i++) {
+    double count = h_mean_d0.GetBinContent(i);
+    if (count > 0) { // Avoid empty bins
+        bin_centers_d0.push_back(h_mean_d0.GetBinCenter(i));
+        mean_values_d0.push_back(h_mean_d0.GetBinContent(i));  // Mean NHits
+        std_devs_d0.push_back(h_mean_d0.GetBinError(i));  // Standard deviation
+    }
+}
+
+
+  int n_rxy = bin_centers_rxy.size();
+  TGraphErrors nhits_rxy(n_rxy, bin_centers_rxy.data(), mean_values_rxy.data(), nullptr, std_devs_rxy.data());
+  
+
+  nhits_rxy.Draw("AP");
+  c.SaveAs(DIR + "nhits_vs_rxy.pdf");
+
+
+  int n_d0 = bin_centers_d0.size();
+  TGraphErrors nhits_d0(n_d0, bin_centers_d0.data(), mean_values_d0.data(), nullptr, std_devs_d0.data());
+  nhits_d0.Draw("AP");
+  c.SaveAs(DIR + "nhits_vs_d0.pdf");
+  */
   displaced_track_eta->Draw();
   c.SaveAs(DIR + "displaced_track_eta.pdf");
   displaced_matched_d0->Draw();
@@ -1109,6 +1395,12 @@ const TString fileName
 
   PtRelvsPt->Draw();
   c.SaveAs(DIR + "PtRelvsPt.pdf");
+
+  nhits_vs_d0->Draw();
+  c.SaveAs(DIR + "nhits_vs_d0.pdf");
+
+  nhits_vs_rxy->Draw();
+  c.SaveAs(DIR + "nhits_vs_rxy.pdf");
 
   fake_track_pt->Draw();
   c.SaveAs(DIR + "fake_track_pt.pdf");
@@ -1308,8 +1600,6 @@ const TString fileName
   displaced_eff_phi->Draw("SAME"); // "SAME" option overlays it on the existing canvas
 
   // Add a legend to distinguish between the histograms
-  legend->AddEntry(displaced_eff_acc_phi, "Eff. w/ Acceptance", "l");
-  legend->AddEntry(displaced_eff_phi, "Total Eff. ", "l");
   legend->Draw();
 
   // Save the canvas as a PDF
@@ -1363,14 +1653,67 @@ const TString fileName
   std::cout << "numRecoableStaus: " << numRecoableStaus << "\n";
   std::cout << "numMatchedStauTracks: " << numMatchedStauTracks << "\n";
   std::cout << "total stau tracking efficiency: " << float(numMatchedStauTracks) / float(numRecoableStaus) << "\n";
-
+  std::cout << "fake rate: " << float(nFakeTrack) / float(nEvents) << "\n";
+  std::cout << "numEvents: " << nEvents << "\n";
+  std::cout << "nStauPrompt: " << nStauPrompt << "\n";
   std::cout << "numRecoableDisplacedParticles: " << numRecoableDisplacedParticles << "\n";
+  std::cout << "numTotalDisplacedParticles: " << numTotalDisplacedParticles << "\n";
   std::cout << "numMatchedDisplacedTracks: " << numMatchedDisplacedTracks << "\n";
   std::cout << "total displaced tracking efficiency: " << float(numMatchedDisplacedTracks) / float(numRecoableDisplacedParticles) << "\n";
+  std::cout << "total displaced tracking AxE: " << float(numMatchedDisplacedTracks) / float(numTotalDisplacedParticles) << "\n";
   }
 
 
-  void overlayMultipleSamples(std::vector<TString> fileNames){
+  void overlayMultipleSamples(std::vector<TString> fileNames, std::string timing){
+
+    std::string rootFileDir = "recoRootFiles"; 
+    if (timing == "tight"){
+      rootFileDir = "tightTimingRecoRootFiles/"; 
+    }
+    if (timing == "medium"){
+      rootFileDir = "mediumTimingRecoRootFiles/";
+    }
+    if (timing == "loose"){
+      rootFileDir = "looseTimingRecoRootFiles/";
+    }
+    if (timing == "mediumFix"){
+      rootFileDir = "timingFixMediumRootFiles/";
+    }
+    if (timing == "ITMedium"){
+      rootFileDir = "timingMediumITSeedingRootFiles/";
+    }
+    if (timing == "ITMediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBITSeedingRecoRootFiles/";
+    }
+    if (timing == "ITOTMediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBITOTSeedingRecoRootFiles/";
+    }
+    if (timing == "mediumNoBIB"){
+      rootFileDir = "mediumTimingNoBIBRecoRootFilesStripsOn/";
+    }
+    if (timing == "mediumNoBIBPropBack"){
+      rootFileDir = "mediumTimingNoBIBPropBackStripsOn/";
+    }
+    if (timing == "mediumNoBIBStripsOff"){
+      rootFileDir = "mediumTimingNoBIBStripsOff/";
+    }
+    if (timing == "mediumPrompt"){
+      rootFileDir = "MediumTimingPrompt10pBIB/";
+    }
+    if (timing == "tightPrompt"){
+      rootFileDir = "TightTimingPrompt10pBIB/";
+    }
+    if (timing == "loosePrompt"){
+      rootFileDir = "LooseTimingPrompt10pBIB/";
+    }
+    if (timing == "mediumDisplaced"){
+      rootFileDir = "MediumTimingTwoPasses0pBIB/";
+    }
+    if (timing == "openHouse"){
+      rootFileDir = "openHouseRootFiles/";
+    }
+
+    
 
   //////////////////////////////////////////
   /// overlay multiple sample histograms ///
@@ -1409,6 +1752,17 @@ const TString fileName
   TCanvas* cEffAccEta = new TCanvas("cEffAccEta", "Overlayed Histograms", 800, 600);
   TCanvas* cEffPt = new TCanvas("cEffPt", "Overlayed Histograms", 800, 600);
   TCanvas* cEffEta = new TCanvas("cEffEta", "Overlayed Histograms", 800, 600);
+  TCanvas* cStEffEta = new TCanvas("cStEffEta", "Overlayed Histograms", 800, 600);
+  TCanvas* cStEffAccEta = new TCanvas("cStEffAccEta", "Overlayed Histograms", 800, 600);
+  TCanvas* cStEffPt = new TCanvas("cStEffPt", "Overlayed Histograms", 800, 600);
+  TCanvas* cStEffAccPt = new TCanvas("cStEffAccPt", "Overlayed Histograms", 800, 600);
+  TCanvas* cStEffAccPhi = new TCanvas("cStEffAccPhi", "Overlayed Histograms", 800, 600);
+  TCanvas* cStTrackPt = new TCanvas("cStTrackPt", "Overlayed Histograms", 800, 600);
+  TCanvas* cStVeloRes = new TCanvas("cStVeloRes", "Overlayed Histograms", 800, 600);
+  TCanvas* cStNHits = new TCanvas("cStNHits", "Overlayed Histograms", 800, 600);
+  TCanvas* cStChi2 = new TCanvas("cStChi2", "Overlayed Histograms", 800, 600);
+  TCanvas* cStVeloResid = new TCanvas("cStVeloResid", "Overlayed Histograms", 800, 600);
+  
 
   TLegend* legendFake0 = new TLegend(0.6, 0.8, 0.95, 0.95);
   legendFake0->SetTextSize(0.0215); // Adjust text size
@@ -1423,36 +1777,42 @@ const TString fileName
   TLegend* legendFake5 = new TLegend(0.6, 0.8, 0.95, 0.95);
   legendFake5->SetTextSize(0.0215); // Adjust text size
 
-  TLegend* legendLog = new TLegend(0.6, 0.8, 0.95, 0.95);
-  legendLog->SetTextSize(0.0215); // Adjust text size
-  TLegend* legend1 = new TLegend(0.5, 0.7, 0.95, 0.95);
-  legend1->SetTextSize(0.03); // Adjust text size
-  TLegend* legend2 = new TLegend(0.50, 0.75, 0.95, 0.95);
-  legend2->SetTextSize(0.0275); // Adjust text size
+  TLegend* legendLog = new TLegend(0.7, 0.7, 0.95, 0.95);
+  legendLog->SetTextSize(0.03); // Adjust text size
+  TLegend* legendStau = new TLegend(0.24, 0.95, 0.925, 0.8);
+  legendStau->SetTextSize(0.025); // Adjust text size
+  legendStau->SetNColumns(2); // Set legend to two columns
+  TLegend* legend1 = new TLegend(0.6, 0.6, 0.95, 0.95);
+  legend1->SetTextSize(0.05); // Adjust text size
+  TLegend* legend2 = new TLegend(0.6, 0.6, 0.95, 0.95);
+  legend2->SetTextSize(0.05); // Adjust text size
   TLegend* legend3 = new TLegend(0.6, 0.8, 0.95, 0.95);
   legend3->SetTextSize(0.0215); // Adjust text size
   TCanvas* cRxy = new TCanvas("cRxy", "Overlayed Histograms", 800, 600);
-  TLegend* legendRxy = new TLegend(0.6, 0.625, 0.95, 0.95);
-  legendRxy->SetTextSize(0.05); // Adjust text size
+  TCanvas* cStRxy = new TCanvas("cStRxy", "Overlayed Histograms", 800, 600);
+  TLegend* legendRxy = new TLegend(0.65, 0.75, 0.95, 0.95);
+  legendRxy->SetTextSize(0.04); // Adjust text size
   cRxy->SetLogy();
+  cStRxy->SetLogy();
   for (TString fileName : fileNames){
     std::cout << "fileName: " << fileName << "\n";
 
-    TString dir = "Temp_" + fileName + "";
+    TString dir = rootFileDir + "Overlay_" + fileName + "";
     gSystem->mkdir(dir);
     TString DIR = dir + "/";
-    TString OverlayDIR = "Temp_" + fileName + "/";
-    gSystem->mkdir(OverlayDIR);
+    TString OverlayDIR = rootFileDir + "Overlay_" + fileName + "/";
+    if (colorCounter == fileNames.size()){
+      gSystem->mkdir(OverlayDIR);
+    }
 
     // Mcp info
     cRxy->cd();
     displaced_mcp_rxy_map[fileName]->SetLineColor(colorCounter);
-    displaced_mcp_rxy_map[fileName]->SetMaximum(1000);
+    displaced_mcp_rxy_map[fileName]->SetMaximum(500);
     displaced_mcp_rxy_map[fileName]->GetYaxis()->SetTitle("Num. Charged Decay Products");
     displaced_mcp_rxy_map[fileName]->GetXaxis()->SetTitle("Prod. R_{xy} [mm]");
     displaced_mcp_rxy_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_mcp_rxy_map[fileName]->GetYaxis()->SetTitleSize(0.05);
-    legendRxy->AddEntry(displaced_mcp_rxy_map[fileName], legend_map[fileName], "l");
     if (colorCounter == 1) displaced_mcp_rxy_map[fileName]->Draw("HIST");
     else displaced_mcp_rxy_map[fileName]->Draw("HIST SAME");
     if (colorCounter == fileNames.size()){
@@ -1460,16 +1820,33 @@ const TString fileName
       cRxy->SaveAs(OverlayDIR + "displaced_mcp_prod_rxy.pdf");
     }
 
+    cStRxy->cd();
+    stau_rxy_decay_map[fileName]->SetLineColor(colorCounter);
+    stau_rxy_decay_map[fileName]->SetMaximum(5000);
+    stau_rxy_decay_map[fileName]->GetYaxis()->SetTitle("Num. Staus");
+    stau_rxy_decay_map[fileName]->GetXaxis()->SetTitle("Decay R_{xy} [mm]");
+    stau_rxy_decay_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_rxy_decay_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    legendRxy->AddEntry(stau_rxy_decay_map[fileName], legend_map[fileName], "l");
+    if (colorCounter == 1) stau_rxy_decay_map[fileName]->Draw("HIST");
+    else stau_rxy_decay_map[fileName]->Draw("HIST SAME");
+    if (colorCounter == fileNames.size()){
+      legendRxy->Draw();
+      cStRxy->SaveAs(OverlayDIR + "stau_mcp_decay_rxy.pdf");
+    }
+
     // Overlay fake (meant for BIB) and displaced track propertes
     if (fileNames.size() == 1){ // Only do if working with one sample
       cFakeTrackPt->cd();
       fake_track_pt_map[fileName]->SetLineColor(colorCounter);
       displaced_overlay_track_pt_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_pt_map[fileName]->Scale(1.0 / fake_track_pt_map[fileName]->Integral());
+      displaced_overlay_track_pt_map[fileName]->Scale(1.0 / displaced_overlay_track_pt_map[fileName]->Integral());
       fake_track_pt_map[fileName]->GetXaxis()->SetTitle("Track p_{T} [GeV]");
       fake_track_pt_map[fileName]->Draw("HIST");
-      displaced_overlay_track_pt_map[fileName]->Draw("HIST SAME");
-      legendFake0->AddEntry(displaced_overlay_track_pt_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_pt_map[fileName]->GetBinContent(displaced_overlay_track_pt_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
-      legendFake0->AddEntry(fake_track_pt_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_pt_map[fileName]->GetBinContent(fake_track_pt_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      displaced_overlay_track_pt_map[fileName]->Draw("HIST SAME"); 
+      legendFake0->AddEntry(displaced_overlay_track_pt_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
+      legendFake0->AddEntry(fake_track_pt_map[fileName], ("Fake Tracks, w/ " + std::to_string(static_cast<int>(fake_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
       legendFake0->Draw();
       cFakeTrackPt->SaveAs(OverlayDIR + "fake_displaced_pt.pdf");
 
@@ -1477,6 +1854,8 @@ const TString fileName
       std::cout << "displaced_overlay_track_eta_map[fileName] entries: " << displaced_overlay_track_eta_map[fileName]->GetEntries() << "\n";
       fake_track_eta_map[fileName]->SetLineColor(colorCounter);
       displaced_overlay_track_eta_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_eta_map[fileName]->Scale(1.0 / fake_track_eta_map[fileName]->Integral());
+      displaced_overlay_track_eta_map[fileName]->Scale(1.0 / displaced_overlay_track_eta_map[fileName]->Integral());
       fake_track_eta_map[fileName]->GetXaxis()->SetTitle("Track #eta");
       fake_track_eta_map[fileName]->Draw("HIST");
       displaced_overlay_track_eta_map[fileName]->Draw("HIST SAME");
@@ -1488,6 +1867,8 @@ const TString fileName
       cFakeTrackD0->cd();
       fake_track_d0_map[fileName]->SetLineColor(colorCounter);
       displaced_overlay_track_d0_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_d0_map[fileName]->Scale(1.0 / fake_track_d0_map[fileName]->Integral());
+      displaced_overlay_track_d0_map[fileName]->Scale(1.0 / displaced_overlay_track_d0_map[fileName]->Integral());
       fake_track_d0_map[fileName]->GetXaxis()->SetTitle("Track d_{0} [mm]");
       fake_track_d0_map[fileName]->Draw("HIST");
       displaced_overlay_track_d0_map[fileName]->Draw("HIST SAME");
@@ -1499,6 +1880,8 @@ const TString fileName
       cFakeTrackZ0->cd();
       fake_track_z0_map[fileName]->SetLineColor(colorCounter);
       displaced_overlay_track_z0_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_z0_map[fileName]->Scale(1.0 / fake_track_z0_map[fileName]->Integral());
+      displaced_overlay_track_z0_map[fileName]->Scale(1.0 / displaced_overlay_track_z0_map[fileName]->Integral());
       fake_track_z0_map[fileName]->GetXaxis()->SetTitle("Track # [mm]");
       fake_track_z0_map[fileName]->Draw("HIST");
       displaced_overlay_track_z0_map[fileName]->Draw("HIST SAME");
@@ -1510,24 +1893,30 @@ const TString fileName
       cFakeNHits->cd();
       fake_track_nhits_map[fileName]->SetLineColor(colorCounter);
       displaced_overlay_track_nhits_map[fileName]->SetLineColor(colorCounter + 1);
+      fake_track_nhits_map[fileName]->Scale(1.0 / fake_track_nhits_map[fileName]->Integral());
+      displaced_overlay_track_nhits_map[fileName]->Scale(1.0 / displaced_overlay_track_nhits_map[fileName]->Integral());
       fake_track_nhits_map[fileName]->GetXaxis()->SetTitle("Number of Tracker Hits");
       
       fake_track_nhits_map[fileName]->Draw("HIST");
       displaced_overlay_track_nhits_map[fileName]->Draw("HIST SAME");
-      legendFake4->AddEntry(displaced_overlay_track_nhits_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_nhits_map[fileName]->GetBinContent(displaced_overlay_track_nhits_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
-      legendFake4->AddEntry(fake_track_nhits_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_nhits_map[fileName]->GetBinContent(fake_track_nhits_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake4->AddEntry(displaced_overlay_track_nhits_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
+      legendFake4->AddEntry(fake_track_nhits_map[fileName], ("Fake Tracks, w/ " + std::to_string(static_cast<int>(fake_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
       legendFake4->Draw();
       cFakeNHits->SaveAs(OverlayDIR + "fake_displaced_nhits.pdf"); // FIXME add n vxd, inner, outer hits
 
       cFakeChi2R->cd();
       fake_track_chi2_reduced_map[fileName]->SetLineColor(colorCounter);
+      fake_track_chi2_reduced_map[fileName]->SetMaximum(1.0);
+      fake_track_chi2_reduced_map[fileName]->Scale(1.0 / fake_track_chi2_reduced_map[fileName]->Integral());
+      displaced_overlay_track_chi2_reduced_map[fileName]->Scale(1.0 / displaced_overlay_track_chi2_reduced_map[fileName]->Integral());
+      
       displaced_overlay_track_chi2_reduced_map[fileName]->SetLineColor(colorCounter + 1);
       fake_track_chi2_reduced_map[fileName]->GetXaxis()->SetTitle("#chi^{2} / ndf");
       
       fake_track_chi2_reduced_map[fileName]->Draw("HIST");
       displaced_overlay_track_chi2_reduced_map[fileName]->Draw("HIST SAME");
-      legendFake5->AddEntry(displaced_overlay_track_chi2_reduced_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_chi2_reduced_map[fileName]->GetBinContent(displaced_overlay_track_chi2_reduced_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
-      legendFake5->AddEntry(fake_track_chi2_reduced_map[fileName], ("Fake Trks, w/ " + std::to_string(static_cast<int>(fake_track_chi2_reduced_map[fileName]->GetBinContent(fake_track_chi2_reduced_map[fileName]->GetNbinsX() + 1))) + " overflow trks").c_str(), "l");
+      legendFake5->AddEntry(displaced_overlay_track_chi2_reduced_map[fileName], ("Displaced Trks, w/ " + std::to_string(static_cast<int>(displaced_overlay_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
+      legendFake5->AddEntry(fake_track_chi2_reduced_map[fileName], ("Fake Tracks, w/ " + std::to_string(static_cast<int>(fake_track_pt_map[fileName]->GetEntries())) + " tracks").c_str(), "l");
       legendFake5->Draw();
       cFakeChi2R->SaveAs(OverlayDIR + "fake_displaced_Chi2R.pdf");
     }
@@ -1545,7 +1934,7 @@ const TString fileName
     if (colorCounter == 1) displaced_track_d0_map[fileName]->Draw("HIST");
     else displaced_track_d0_map[fileName]->Draw("HIST SAME");
 
-    legendLog->AddEntry(displaced_track_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_d0_map[fileName]->GetEntries())) + " tracks", "l");
+    legendLog->AddEntry(displaced_track_d0_map[fileName], legend_map[fileName], "l");
     legendLog->Draw();
     if (colorCounter == fileNames.size()) cTrackD0->SaveAs(OverlayDIR + "displaced_track_d0_overlay.pdf");
     
@@ -1562,7 +1951,7 @@ const TString fileName
     if (colorCounter == 1) displaced_track_pt_map[fileName]->Draw("HIST");
     else displaced_track_pt_map[fileName]->Draw("HIST SAME");
 
-    legend1->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_track_pt_map[fileName]->GetEntries())) + " tracks", "l");
+    legend1->AddEntry(displaced_track_pt_map[fileName], legend_map[fileName], "l");
 
     // Save canvas
     if (colorCounter == fileNames.size()){
@@ -1575,7 +1964,7 @@ const TString fileName
     displaced_nhits_map[fileName]->SetLineColor(colorCounter);
     displaced_nhits_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_nhits_map[fileName]->GetYaxis()->SetTitleSize(0.05);
-    displaced_nhits_map[fileName]->SetMaximum(200);
+    displaced_nhits_map[fileName]->SetMaximum(300);
     displaced_nhits_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_nhits_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
 
@@ -1594,7 +1983,7 @@ const TString fileName
     displaced_chi2_reduced_map[fileName]->SetLineColor(colorCounter);
     displaced_chi2_reduced_map[fileName]->GetXaxis()->SetTitleSize(0.05);
     displaced_chi2_reduced_map[fileName]->GetYaxis()->SetTitleSize(0.05);
-    displaced_chi2_reduced_map[fileName]->SetMaximum(75);
+    displaced_chi2_reduced_map[fileName]->SetMaximum(160);
     displaced_chi2_reduced_map[fileName]->SetLineWidth(2); // Set line width to 3
     displaced_chi2_reduced_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
 
@@ -1645,6 +2034,8 @@ const TString fileName
     cEffAccD0->cd();
     displaced_matched_d0_map[fileName]->Sumw2();
     displaced_tp_d0_map[fileName]->Sumw2();
+    std::cout << "entries for : " << fileName << " matched d0: " << displaced_matched_d0_map[fileName]->GetEntries() << "\n";
+    std::cout << "entries for : " << fileName << " tp d0: " << displaced_tp_d0_map[fileName]->GetEntries() << "\n";
     displaced_eff_acc_d0_map[fileName] = (TH1F*)displaced_matched_d0_map[fileName]->Clone();
     displaced_eff_acc_d0_map[fileName]->SetName("eff_eta");
     displaced_eff_acc_d0_map[fileName]->GetYaxis()->SetTitle("Efficiency");
@@ -1658,7 +2049,7 @@ const TString fileName
     if (colorCounter == 1) displaced_eff_acc_d0_map[fileName]->Draw();
     else displaced_eff_acc_d0_map[fileName]->Draw("SAME");
     
-    legend2->AddEntry(displaced_eff_acc_d0_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_matched_d0_map[fileName]->GetEntries())) + " tracks", "l");
+    legend2->AddEntry(displaced_eff_acc_d0_map[fileName], legend_map[fileName], "l");
     
     if (colorCounter == fileNames.size()){
       legend2->Draw();
@@ -1668,8 +2059,10 @@ const TString fileName
     cEffD0->cd();
     displaced_matched_d0_map[fileName]->Sumw2();
     displaced_mcp_d0_map[fileName]->Sumw2();
+    std::cout << "entries for : " << fileName << " matched d0: " << displaced_matched_d0_map[fileName]->GetEntries() << "\n";
+    std::cout << "entries for : " << fileName << " mcp d0: " << displaced_mcp_d0_map[fileName]->GetEntries() << "\n";
     displaced_eff_d0_map[fileName] = (TH1F*)displaced_matched_d0_map[fileName]->Clone();
-    displaced_eff_d0_map[fileName]->SetName("eff_eta");
+    displaced_eff_d0_map[fileName]->SetName("eff_d0");
     displaced_eff_d0_map[fileName]->GetYaxis()->SetTitle("Efficiency");
     displaced_eff_d0_map[fileName]->Divide(displaced_matched_d0_map[fileName], displaced_mcp_d0_map[fileName], 1.0, 1.0, "B");
     displaced_eff_d0_map[fileName]->SetAxisRange(0, 1.1, "Y");
@@ -1743,7 +2136,7 @@ const TString fileName
     displaced_eff_acc_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
     if (colorCounter == 1) displaced_eff_acc_pt_map[fileName]->Draw();
     else displaced_eff_acc_pt_map[fileName]->Draw("SAME");
-    legend3->AddEntry(displaced_eff_acc_pt_map[fileName], legend_map[fileName] + " with " + std::to_string(static_cast<int>(displaced_matched_pt_map[fileName]->GetEntries())) + " tracks", "l");
+    legend3->AddEntry(displaced_eff_acc_pt_map[fileName], legend_map[fileName], "l");
     if (colorCounter == fileNames.size()){
       legend3->Draw();
       cEffAccPt->SaveAs(OverlayDIR + "displaced_eff_acc_pt_overlay.pdf");
@@ -1811,7 +2204,222 @@ const TString fileName
       cEffEta->SaveAs(OverlayDIR + "displaced_eff_eta_overlay.pdf");
     } 
 
+    int lineStyle = 1; // Default to solid
+    int color = kBlack; // Default color
+
+    std::string strFileName = fileName.Data();
+
+    // Determine color
+    if (strFileName.find("4000") != std::string::npos) {
+      color = kBlue;
+    } else if (strFileName.find("2500") != std::string::npos) {
+      color = kRed;
+    }
+
+    // Determine line style
+    if (strFileName.find("tight") != std::string::npos) {
+      lineStyle = 1; // Solid
+    } else if (strFileName.find("medium") != std::string::npos) {
+        lineStyle = 2; // Dashed
+    } else if (strFileName.find("loose") != std::string::npos) {
+        lineStyle = 3; // Dotted
+    }
+
+    
+
+    cStEffEta->cd();
+    stau_matched_eta_map[fileName]->Sumw2();
+    stau_mcp_eta_map[fileName]->Sumw2();
+    stau_eff_eta_map[fileName] = (TH1F*)stau_matched_eta_map[fileName]->Clone();
+    stau_eff_eta_map[fileName]->SetName("st_eff_eta");
+    stau_eff_eta_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    stau_eff_eta_map[fileName]->Divide(stau_matched_eta_map[fileName], stau_mcp_eta_map[fileName], 1.0, 1.0, "B");
+    stau_eff_eta_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    stau_eff_eta_map[fileName]->SetLineColor(color);
+    stau_eff_eta_map[fileName]->SetLineStyle(lineStyle);
+    stau_eff_eta_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_eff_eta_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_eff_eta_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_eff_eta_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) stau_eff_eta_map[fileName]->Draw();
+    else stau_eff_eta_map[fileName]->Draw("SAME");
+    legendStau->AddEntry(stau_eff_eta_map[fileName], legend_map[fileName], "l");
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStEffEta->SaveAs(OverlayDIR + "stau_eff_eta_overlay.pdf");
+    } 
+
+    cStEffAccEta->cd();
+    stau_matched_eta_map[fileName]->Sumw2();
+    stau_tp_eta_map[fileName]->Sumw2();
+    stau_eff_acc_eta_map[fileName] = (TH1F*)stau_matched_eta_map[fileName]->Clone();
+    stau_eff_acc_eta_map[fileName]->SetName("st_eff_eta");
+    stau_eff_acc_eta_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    stau_eff_acc_eta_map[fileName]->Divide(stau_matched_eta_map[fileName], stau_tp_eta_map[fileName], 1.0, 1.0, "B");
+    stau_eff_acc_eta_map[fileName]->SetAxisRange(0, 1.3, "Y");
+
+    stau_eff_acc_eta_map[fileName]->SetLineColor(color);
+    stau_eff_acc_eta_map[fileName]->SetLineStyle(lineStyle);
+    stau_eff_acc_eta_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_eff_acc_eta_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_eff_acc_eta_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_eff_acc_eta_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) stau_eff_acc_eta_map[fileName]->Draw();
+    else stau_eff_acc_eta_map[fileName]->Draw("SAME");
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStEffAccEta->SaveAs(OverlayDIR + "stau_eff_acc_eta_overlay.pdf");
+    } 
+
+    cStEffPt->cd();
+
+    stau_matched_pt_map[fileName]->Sumw2();
+    stau_mcp_pt_map[fileName]->Sumw2();
+    stau_eff_pt_map[fileName] = (TH1F*)stau_matched_pt_map[fileName]->Clone();
+    stau_eff_pt_map[fileName]->SetName("st_eff_pt");
+    stau_eff_pt_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    stau_eff_pt_map[fileName]->Divide(stau_matched_pt_map[fileName], stau_mcp_pt_map[fileName], 1.0, 1.0, "B");
+    stau_eff_pt_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    stau_eff_pt_map[fileName]->SetLineColor(color);
+    stau_eff_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_eff_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_eff_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_eff_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) stau_eff_pt_map[fileName]->Draw();
+    else stau_eff_pt_map[fileName]->Draw("SAME");
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStEffPt->SaveAs(OverlayDIR + "stau_eff_pt_overlay.pdf");
+    } 
+    
+    cStEffAccPt->cd();
+
+    stau_matched_pt_map[fileName]->Sumw2();
+    stau_tp_pt_map[fileName]->Sumw2();
+    stau_eff_acc_pt_map[fileName] = (TH1F*)stau_matched_pt_map[fileName]->Clone();
+    stau_eff_acc_pt_map[fileName]->SetName("eff_acc_pt");
+    stau_eff_acc_pt_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    stau_eff_acc_pt_map[fileName]->Divide(stau_matched_pt_map[fileName], stau_tp_pt_map[fileName], 1.0, 1.0, "B");
+    stau_eff_acc_pt_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    stau_eff_acc_pt_map[fileName]->SetLineColor(color);
+    stau_eff_acc_pt_map[fileName]->SetLineStyle(lineStyle);
+    stau_eff_acc_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_eff_acc_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_eff_acc_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_eff_acc_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) stau_eff_acc_pt_map[fileName]->Draw();
+    else stau_eff_acc_pt_map[fileName]->Draw("SAME");
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStEffAccPt->SaveAs(OverlayDIR + "stau_eff_acc_pt_overlay.pdf");
+    } 
+
+    cStEffAccPhi->cd();
+
+    stau_matched_phi_map[fileName]->Sumw2();
+    stau_tp_phi_map[fileName]->Sumw2();
+    stau_eff_acc_phi_map[fileName] = (TH1F*)stau_matched_phi_map[fileName]->Clone();
+    stau_eff_acc_phi_map[fileName]->SetName("eff_acc_phi");
+    stau_eff_acc_phi_map[fileName]->GetYaxis()->SetTitle("Efficiency");
+    stau_eff_acc_phi_map[fileName]->Divide(stau_matched_phi_map[fileName], stau_tp_phi_map[fileName], 1.0, 1.0, "B");
+    stau_eff_acc_phi_map[fileName]->SetAxisRange(0, 1.1, "Y");
+    stau_eff_acc_phi_map[fileName]->SetLineColor(color);
+    stau_eff_acc_phi_map[fileName]->SetLineStyle(lineStyle);
+    stau_eff_acc_phi_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_eff_acc_phi_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_eff_acc_phi_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_eff_acc_phi_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+    if (colorCounter == 1) stau_eff_acc_phi_map[fileName]->Draw();
+    else stau_eff_acc_phi_map[fileName]->Draw("SAME");
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStEffAccPhi->SaveAs(OverlayDIR + "stau_eff_acc_phi_overlay.pdf");
+    } 
+
+
+    cStTrackPt->cd();
+    // Draw histograms on the same canvas
+    stau_track_pt_map[fileName]->SetLineColor(color);
+    stau_track_pt_map[fileName]->SetLineStyle(lineStyle);
+    stau_track_pt_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_track_pt_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_track_pt_map[fileName]->SetMaximum(625);
+    stau_track_pt_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_track_pt_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) stau_track_pt_map[fileName]->Draw("HIST");
+    else stau_track_pt_map[fileName]->Draw("HIST SAME");
+
+    // Save canvas
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStTrackPt->SaveAs(OverlayDIR + "stau_track_pt_overlay.pdf");
+    } 
+
+    cStVeloRes->cd();
+    // Draw histograms on the same canvas
+    stau_velores_map[fileName]->SetLineColor(color);
+    stau_velores_map[fileName]->SetLineStyle(lineStyle);
+    stau_velores_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_velores_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_velores_map[fileName]->SetMaximum(0.05);
+    stau_velores_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_velores_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) stau_velores_map[fileName]->Draw();
+    else stau_velores_map[fileName]->Draw("SAME");
+
+    // Save canvas
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStVeloRes->SaveAs(OverlayDIR + "stau_velores_nhits_overlay.pdf");
+    } 
+
+    
+
+    cStNHits->cd();
+    // Draw histograms on the same canvas
+    stau_nhits_map[fileName]->SetLineColor(color);
+    stau_nhits_map[fileName]->SetLineStyle(lineStyle);
+    stau_nhits_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_nhits_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_nhits_map[fileName]->SetMaximum(1200);
+    stau_nhits_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_nhits_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) stau_nhits_map[fileName]->Draw("HIST");
+    else stau_nhits_map[fileName]->Draw("HIST SAME");
+    
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStNHits->SaveAs(OverlayDIR + "stau_track_nhits_overlay.pdf");
+    } 
+
+    cStVeloResid->cd();
+    // Draw histograms on the same canvas
+    stau_velo_residuals_map[fileName]->SetLineColor(color);
+    stau_velo_residuals_map[fileName]->SetLineStyle(lineStyle);
+    stau_velo_residuals_map[fileName]->GetXaxis()->SetTitleSize(0.05);
+    stau_velo_residuals_map[fileName]->GetYaxis()->SetTitleSize(0.05);
+    stau_velo_residuals_map[fileName]->SetMaximum(200);
+    stau_velo_residuals_map[fileName]->SetLineWidth(2); // Set line width to 3
+    stau_velo_residuals_map[fileName]->SetMarkerSize(1.5); // Set marker size to 1.5
+
+    // Draw the first histogram and the rest on the same canvas
+    if (colorCounter == 1) stau_velo_residuals_map[fileName]->Draw("HIST");
+    else stau_velo_residuals_map[fileName]->Draw("HIST SAME");
+    
+    if (colorCounter == fileNames.size()){
+      legendStau->Draw();
+      cStVeloResid->SaveAs(OverlayDIR + "stau_track_velo_residuals_overlay.pdf");
+    } 
+
     colorCounter++; 
+
+
     }
     
   }
@@ -1907,14 +2515,29 @@ void callRootAnalyzer(){
   //if (massPoint == "4TeV") fileNames = {"4000_0.1", "4000_1", "4000_10"};
   //if (massPoint == "4.5TeV") fileNames = {"4500_0.1", "4500_1", "4500_10"};
   //fileNames = {"2500_1_bib"};
+  //std::string timing = "ITMediumNoBIB"; 
+  //std::string timing = "ITOTMediumNoBIB"; 
+  //std::string timing = "mediumNoBIB"; 
+  //std::string timing = "mediumNoBIBStripsOff"; 
+  //std::string timing = "mediumNoBIBPropBack"; 
+  //std::string timing = "mediumDisplaced"; 
+  std::string timing = "openHouse"; 
+  //fileNames = {"1000_0.1"};
   //fileNames = {"1000_1", "1000_1_osgcomparison"};
-  fileNames = {"2500_1", "2500_1_osgcomparison"};
+  //fileNames = {"1000_1_osgcomparison", "2500_1_osgcomparison", "4000_1_osgcomparison"};
   //fileNames = {"4000_10", "4000_10_osgcomparison"};
-  //fileNames = {"1000_0.1", "1000_1", "2500_0.1", "2500_1", "4000_0.1", "4000_1"};
+  //fileNames = {"1000_1", "2500_1", "4000_1"};
+  //fileNames = {"2500_10_tight", "4000_10_tight"};
+  //fileNames = {"4000_10_tight", "4000_10_medium", "4000_10_loose"};
+  fileNames = {"4000_10_loose_velores", "2500_10_medium_velores"};
+  //fileNames = {"2500_1", "4000_1", "2500_10_medium", "4000_10_medium"};
+  //fileNames = {"4000_10_tight", "4000_10_medium", "4000_10_loose", "2500_10_tight", "2500_10_medium", "2500_10_loose"};
   initialize_histograms(fileNames);
   for (int i = 0; i < fileNames.size(); i++){
     std::cout << "fileNames[i]: " << fileNames[i];
-    rootAnalyzer(fileNames[i]);
+    rootAnalyzer(fileNames[i], timing);
   }
-  overlayMultipleSamples(fileNames);
+  if (fileNames.size() > 1){
+    overlayMultipleSamples(fileNames, timing);
+  }
 }

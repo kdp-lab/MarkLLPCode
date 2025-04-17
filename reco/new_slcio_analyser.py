@@ -16,7 +16,7 @@ fm._get_fontconfig_fonts()
 ROOT.gROOT.SetBatch()
 
 # Set up some options, constants
-max_events = 1000 # Set to -1 to run over all events
+max_events = 25000 # Set to -1 to run over all events
 Bfield = 3.57 #T, 3.57 for legacy
 
 def check_hard_radiation(mcp, fractional_threshold):
@@ -58,7 +58,9 @@ def acceptanceCutsDisplaced(mcp):
 
 # Gather input files
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
-base_path = "/home/larsonma/MarkLLPCode/reco/"
+#base_path = "/home/larsonma/MarkLLPCode/reco/"
+base_path = "/scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/reco/rootOutput/"
+input_path = "/ospool/uc-shared/project/futurecolliders/larsonma/ParticleGunReco/"
 #input_path = "/local/d1/mu+mu-/reco_v3/osg_comparison_final/"
 #input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
 #input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
@@ -67,8 +69,11 @@ base_path = "/home/larsonma/MarkLLPCode/reco/"
 #sampleNames = ["1000_0.1", "1000_1", "2500_0.1", "2500_1", "2500_10", "4000_0.1", "4500_0.1"]
 #sampleNames = ["4000_0.1", "4000_1", "4000_10", "4500_0.1", "4500_1", "4500_10"]
 #sampleNames = ["bib"]
-#sampleNames = ["2500_1_bib_nocut"]
-sampleNames = ["2500_10", "4000_1", "4000_10", "4500_10"]
+#sampleNames = ["central_3TeV_muon", "central_500GeV_muon", "central_50GeV_muon"]#, "central_3TeV_pion_RESCHANGE", "central_3TeV_pion_RESCHANGEbetter", "central_3TeV_pion_originalreco", "central_500GeV_pion", "central_50GeV_pion"]
+sampleNames = ["pgun_pion_3000GeV_strips", "pgun_pion_500GeV_strips", "pgun_pion_50GeV_strips"]
+#sampleNames = ["pgun_pion_3000GeV", "pgun_pion_500GeV", "pgun_pion_50GeV"]
+#sampleNames = ["central_pion_gun_originalreco"]
+#sampleNames = ["2500_10", "4000_1", "4000_10", "4500_10"]
 #sampleNames = ["4000_10_bib_nocut", "4500_10_bib_nocut"]
 #sampleNames = ["2500_0.1_simosg", "2500_1_simosg", "4000_0.1_simosg", "4500_0.1_simosg"]
 #sampleNames = ["4500_10_timext"]
@@ -445,6 +450,30 @@ for sample in sampleNames:
     num_mult_particles_fake_tracks = 0
     hard_rad_discard = 0
     total_n_pfo_mu = 0
+    n_pion_tracks = 0
+    total_ptres_pions = 0
+    total_radiated_pions = 0 
+    n_muon_tracks = 0
+    total_ptres_muons = 0
+    total_radiated_muons = 0
+    # Lists to store nhits and ptres for each event
+    nhits_list = []
+    ptres_list = []
+    eta_list = []
+    truth_pt = []
+    track_pt_some = []
+    nhits_list_some = []
+    chi2red_list_all = []
+    nhits_list_all = []
+    hits_r_list_all = []
+    hits_z_list_all = []
+    npixelhits_list_all = []
+    ninnerhits_list_all = []
+    nouterhits_list_all = []
+    eta_list_all = []
+    ptres_list_all = []
+    truth_pt_all = []
+    deltaqoverp_all = []
     reader = pyLCIO.IOIMPL.LCFactory.getInstance().createLCReader()
     reader.setReadCollectionNames(["MCParticle", "PandoraPFOs", "SiTracks", "SiTracks_Refitted", "MCParticle_SiTracks", "MCParticle_SiTracks_Refitted", "IBTrackerHits", "IETrackerHits", "OBTrackerHits", "OETrackerHits", "VBTrackerHits", "VETrackerHits"])
     # ############## LOOP OVER EVENTS AND FILL HISTOGRAMS  #############################
@@ -480,8 +509,8 @@ for sample in sampleNames:
             # Get the collections we care about
             mcpCollection = event.getCollection("MCParticle")
             trackCollection = event.getCollection("SiTracks_Refitted") ### NOTE use SiTracks_Refitted
-            hitsCol = event.getCollection("HitsCollection")
-            print("len hits col:", len(hitsCol))
+            #hitsCol = event.getCollection("HitsCollection")
+            #print("len hits col:", len(hitsCol))
             if "SlimmedHitsCollection" in event.getCollectionNames():
                 slimmedHitsCol = event.getCollection("SlimmedHitsCollection")
                 # Proceed with processing slimmedHitsCol (NOTE: SOME EVENTS DONT HAVE THIS???)
@@ -579,12 +608,12 @@ for sample in sampleNames:
                             
                 except Exception as e:
                     print(f"Error accessing {coll_name}: {e}")   # Storing this to use for matching in the next loop
-            for slimHit in slimmedHitsCol:
-                position = slimHit.getPosition()
-                r = sqrt(position[0] ** 2 + position[1] ** 2)
-                #print("slimmed hit pos_x, pos_y, pos_r, pos_z:", position[0], position[1], r, position[2]) 
-                mcp = hit.getMCParticle()
-                hit_pdg = mcp.getPDG() if mcp else None
+            #for slimHit in slimmedHitsCol:
+            #    position = slimHit.getPosition()
+            #    r = sqrt(position[0] ** 2 + position[1] ** 2)
+            #    #print("slimmed hit pos_x, pos_y, pos_r, pos_z:", position[0], position[1], r, position[2]) 
+            #    mcp = hit.getMCParticle()
+            #    hit_pdg = mcp.getPDG() if mcp else None
                 #print("slimmed hit pdg:", hit_pdg)
             ### perform truth association 
 
@@ -599,6 +628,7 @@ for sample in sampleNames:
                 mcp_tlv = ROOT.TLorentzVector()
                 mcp_tlv.SetPxPyPzE(mcp_p[0], mcp_p[1], mcp_p[2], mcp.getEnergy())
                 pdg = mcp.getPDG()
+                
 
                 mcp_pt_rt.push_back(mcp_tlv.Perp())
                 mcp_eta_rt.push_back(mcp_tlv.Eta())
@@ -611,6 +641,7 @@ for sample in sampleNames:
                 prod_endpoint_z_rt.push_back(mcp.getEndpoint()[2])
                 travel_dist = sqrt(mcp.getEndpoint()[0]**2 + mcp.getEndpoint()[1]**2 + mcp.getEndpoint()[2]**2) - sqrt(mcp.getVertex()[0]**2 + mcp.getVertex()[1]**2 + mcp.getVertex()[2]**2)
                 prod_traveldist_rt.push_back(travel_dist)
+                #print("Mcp pdgid, pt, travel_dist:", pdg, mcp_tlv.Perp(), travel_dist)
                 #print("--------------------------------")
                 #print("vertex x, y, z: ", mcp.getVertex()[0], mcp.getVertex()[1], mcp.getVertex()[2])
                 #print("endpoint x, y, z: ", mcp.getEndpoint()[0], mcp.getEndpoint()[1], mcp.getEndpoint()[2])
@@ -623,6 +654,238 @@ for sample in sampleNames:
                 #print("PID, Status, pT, eta, phi: ", pdg, mcp.getGeneratorStatus(), mcp_tlv.Perp(), mcp_tlv.Eta(), mcp_tlv.Phi())
                 #print("--------------------------------")
                 #print("mcp pdgid: ", mcp.getPDG())
+                if (mcp.getPDG() == 211) and (sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2) == 0.0):
+                    pionDaughters = mcp.getDaughters()
+                    #print("num stau daughters:", len(mcpDaughters))
+                    for pionDaughter in pionDaughters: 
+                        #print("pionDaughter pdg:", pionDaughter.getPDG())
+                        pionDaughter_tlv = ROOT.TLorentzVector()
+                        pionDaughter_p = pionDaughter.getMomentum()
+                        pionDaughter_tlv.SetPxPyPzE(pionDaughter_p[0], pionDaughter_p[1], pionDaughter_p[2], pionDaughter.getEnergy())
+                        #print("pion daughter pt:", pionDaughter_tlv.Perp())
+                        if pionDaughter.getPDG() == 13: 
+                            total_radiated_pions += 1
+                            pionDaughterDaughters = pionDaughter.getDaughters()
+                            for pionDaughterDaughter in pionDaughterDaughters: 
+                                #print("mcpDaughterDaughter pdg:", pionDaughterDaughter.getPDG())
+                                pionDaughterDaughter_tlv = ROOT.TLorentzVector()
+                                pionDaughterDaughter_p = pionDaughterDaughter.getMomentum()
+                                pionDaughterDaughter_tlv.SetPxPyPzE(pionDaughterDaughter_p[0], pionDaughterDaughter_p[1], pionDaughterDaughter_p[2], pionDaughterDaughter.getEnergy())
+                                #print("pion daughterdaughter pt:", pionDaughterDaughter_tlv.Perp())
+                                if pionDaughterDaughter.getPDG() == 13: 
+                                    total_radiated_pions += 1
+                    #print("pion pt:", mcp_tlv.Perp())
+                    #print("pion r, z vertices:", sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2), mcp.getVertex()[2])
+                    #print("pion r, z endpoints:", sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2), mcp.getEndpoint()[2])
+                    pionTracks = lcRelation.getRelatedToObjects(mcp)
+
+                    for pionTrack in pionTracks:
+                                LC_pixel_nhit = 0
+                                LC_inner_nhit = 0
+                                LC_outer_nhit = 0
+                                lastLayer = -1
+                                nLayersCrossed = 0
+                                for hit in pionTrack.getTrackerHits():
+                                    # now decode hits
+                                    encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
+                                    decoder = pyLCIO.UTIL.BitField64(encoding)
+                                    cellID = int(hit.getCellID0())
+                                    decoder.setValue(cellID)
+                                    detector = decoder["system"].value()
+                                    layer = decoder['layer'].value()
+                                    if (lastLayer != layer):
+                                        if (detector <= 2): # if vdx
+                                            nLayersCrossed += 0.5
+                                        nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+
+                                    position = hit.getPosition()
+                                    pos_x = position[0]
+                                    pos_y = position[1]
+                                    pos_z = position[2]
+                                    pos_r = sqrt(pos_x ** 2 + pos_y ** 2)
+                                    hits_r_list_all.append(pos_r)
+                                    hits_z_list_all.append(pos_z)
+
+                                    if detector == 1 or detector == 2:
+                                        LC_pixel_nhit += 1
+                                    if detector == 3 or detector == 4:
+                                        LC_inner_nhit += 1
+                                    if detector == 5 or detector == 6:
+                                        LC_outer_nhit += 1
+                                    lastLayer = layer
+
+                                nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
+                                #print("LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits:", LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits)
+                                if (nTotalHits < 3.5): # account for if 1 part of vertex doublet misses hit
+                                    print("doesn't pass nhits cut, skip stau track")
+                                    continue 
+                                
+                                theta = np.pi/2- np.arctan(pionTrack.getTanLambda())
+                                phi = pionTrack.getPhi()
+                                eta = -np.log(np.tan(theta/2))
+                                #print("pion track eta, truth eta:", eta, mcp_tlv.Eta())
+                                pt  = 0.2998 * Bfield / fabs(pionTrack.getOmega() * 1000.)
+                                #print("pion track pt, truth pt:", pt, mcp_tlv.Perp())
+
+                                qoverp = (pionTrack.getOmega() * sin(theta) * 1000.) / (0.2998 * Bfield)
+                                # Calculate momentum magnitude
+                                p_magnitude = sqrt(mcp_p[0]**2 + mcp_p[1]**2 + mcp_p[2]**2)
+                                
+                                # Get the particle's charge
+                                charge = mcp.getCharge()
+                                truthqoverp = float(charge)/p_magnitude
+                                #print("qoverp track, truth:", qoverp, truthqoverp)
+                                
+                                track_tlv = ROOT.TLorentzVector()
+                                track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
+                                dr = mcp_tlv.DeltaR(track_tlv)
+                                nhitz = pionTrack.getTrackerHits().size()
+                                #print("pion track nhits:", nhitz)
+                                #print("nhits for stau track: ", nhitz)
+                                ptres = abs(mcp_tlv.Perp() - pt) / (mcp_tlv.Perp())
+                                #print("pion track ptres |(truth - track) / truth|:", ptres)
+                                if ptres < 10:
+                                    total_ptres_pions += ptres
+                                    n_pion_tracks += 1
+                                d0 = pionTrack.getD0()
+                                z0 = pionTrack.getZ0()
+                                
+                                if ptres < 1.0:
+                                    nhits_list.append(nhitz)
+                                    ptres_list.append(ptres)
+                                    eta_list.append(eta)
+                                    truth_pt.append(mcp_tlv.Perp())
+                                
+                                if pt < 10000:
+                                    track_pt_some.append(pt)
+                                    nhits_list_some.append(nhitz)
+
+                                nhits_list_all.append(nhitz)
+                                npixelhits_list_all.append(LC_pixel_nhit)
+                                ninnerhits_list_all.append(LC_inner_nhit)
+                                nouterhits_list_all.append(LC_outer_nhit)
+                                ptres_list_all.append(ptres)
+                                eta_list_all.append(eta)
+                                chi2red_list_all.append(pionTrack.getChi2() / float(pionTrack.getNdf()))
+                                truth_pt_all.append(mcp_tlv.Perp())
+                                deltaqoverp_all.append(abs(truthqoverp - qoverp))
+                                
+                if (mcp.getPDG() == 13) and (sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2) == 0.0):
+                    muonDaughters = mcp.getDaughters()
+                    #print("num stau daughters:", len(mcpDaughters))
+                    for muonDaughter in muonDaughters: 
+                        #print("muonDaughter pdg:", muonDaughter.getPDG())
+                        muonDaughter_tlv = ROOT.TLorentzVector()
+                        muonDaughter_p = muonDaughter.getMomentum()
+                        muonDaughter_tlv.SetPxPyPzE(muonDaughter_p[0], muonDaughter_p[1], muonDaughter_p[2], muonDaughter.getEnergy())
+                        #print("muon daughter pt:", muonDaughter_tlv.Perp())
+                        if muonDaughter.getPDG() == 13: 
+                            total_radiated_muons += 1
+                            muonDaughterDaughters = muonDaughter.getDaughters()
+                            for muonDaughterDaughter in muonDaughterDaughters: 
+                                print("mcpDaughterDaughter pdg:", muonDaughterDaughter.getPDG())
+                                muonDaughterDaughter_tlv = ROOT.TLorentzVector()
+                                muonDaughterDaughter_p = muonDaughterDaughter.getMomentum()
+                                muonDaughterDaughter_tlv.SetPxPyPzE(muonDaughterDaughter_p[0], muonDaughterDaughter_p[1], muonDaughterDaughter_p[2], muonDaughterDaughter.getEnergy())
+                                print("muon daughterdaughter pt:", muonDaughterDaughter_tlv.Perp())
+                                if muonDaughterDaughter.getPDG() == 13: 
+                                    total_radiated_muons += 1
+
+                    print("muon pt:", mcp_tlv.Perp())
+                    print("muon r, z vertices:", sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2), mcp.getVertex()[2])
+                    print("muon r, z endpoints:", sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2), mcp.getEndpoint()[2])
+                    muonTracks = lcRelation.getRelatedToObjects(mcp)
+
+                    for muonTrack in muonTracks:
+                                LC_pixel_nhit = 0
+                                LC_inner_nhit = 0
+                                LC_outer_nhit = 0
+                                lastLayer = -1
+                                nLayersCrossed = 0
+                                for hit in muonTrack.getTrackerHits():
+                                    # now decode hits
+                                    encoding = hit_collections[0].getParameters().getStringVal(pyLCIO.EVENT.LCIO.CellIDEncoding)
+                                    decoder = pyLCIO.UTIL.BitField64(encoding)
+                                    cellID = int(hit.getCellID0())
+                                    decoder.setValue(cellID)
+                                    detector = decoder["system"].value()
+                                    layer = decoder['layer'].value()
+                                    if (lastLayer != layer):
+                                        if (detector <= 2): # if vdx
+                                            nLayersCrossed += 0.5
+                                        nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
+
+                                    position = hit.getPosition()
+                                    pos_x = position[0]
+                                    pos_y = position[1]
+                                    pos_z = position[2]
+                                    pos_r = sqrt(pos_x ** 2 + pos_y ** 2)
+
+                                    if detector == 1 or detector == 2:
+                                        LC_pixel_nhit += 1
+                                    if detector == 3 or detector == 4:
+                                        LC_inner_nhit += 1
+                                    if detector == 5 or detector == 6:
+                                        LC_outer_nhit += 1
+                                    lastLayer = layer
+
+                                nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
+                                #print("LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits:", LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits)
+                                if (nTotalHits < 3.5): # account for if 1 part of vertex doublet misses hit
+                                    print("doesn't pass nhits cut, skip stau track")
+                                    continue 
+                                
+                                theta = np.pi/2- np.arctan(muonTrack.getTanLambda())
+                                phi = muonTrack.getPhi()
+                                eta = -np.log(np.tan(theta/2))
+                                qoverp = (muonTrack.getOmega() * sin(theta) * 1000.) / (0.2998 * Bfield)
+                                # Calculate momentum magnitude
+                                p_magnitude = sqrt(mcp_p[0]**2 + mcp_p[1]**2 + mcp_p[2]**2)
+                                
+                                # Get the particle's charge
+                                charge = mcp.getCharge()
+                                truthqoverp = float(charge)/p_magnitude
+                                print("qoverp track, truth:", qoverp, truthqoverp)
+
+                                print("muon track eta, truth eta:", eta, mcp_tlv.Eta())
+                                pt  = 0.2998 * Bfield / fabs(muonTrack.getOmega() * 1000.)
+                                print("muon track pt, truth pt:", pt, mcp_tlv.Perp())
+                                
+                                track_tlv = ROOT.TLorentzVector()
+                                track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
+                                dr = mcp_tlv.DeltaR(track_tlv)
+                                nhitz = muonTrack.getTrackerHits().size()
+                                print("muon track nhits:", nhitz)
+                                #print("nhits for stau track: ", nhitz)
+                                ptres = abs(mcp_tlv.Perp() - pt) / (mcp_tlv.Perp())
+                                print("muon track ptres |(truth - track) / truth|:", ptres)
+                                if ptres < 10:
+                                    total_ptres_muons += ptres
+                                    n_muon_tracks += 1
+                                d0 = muonTrack.getD0()
+                                z0 = muonTrack.getZ0()
+                                
+                                if ptres < 1.0:
+                                    nhits_list.append(nhitz)
+                                    ptres_list.append(ptres)
+                                    eta_list.append(eta)
+                                    truth_pt.append(mcp_tlv.Perp())
+                                
+                                if pt < 10000:
+                                    track_pt_some.append(pt)
+                                    nhits_list_some.append(nhitz)
+                                    
+
+                                nhits_list_all.append(nhitz)
+                                npixelhits_list_all.append(LC_pixel_nhit)
+                                ninnerhits_list_all.append(LC_inner_nhit)
+                                nouterhits_list_all.append(LC_outer_nhit)
+                                ptres_list_all.append(ptres)
+                                chi2red_list_all.append(muonTrack.getChi2() / float(muonTrack.getNdf()))
+                                eta_list_all.append(eta)
+                                truth_pt_all.append(mcp_tlv.Perp())
+                                deltaqoverp_all.append(abs(truthqoverp - qoverp))
+                                
                 if abs(mcp.getPDG())==1000015 or abs(mcp.getPDG())==2000015: #### STAUS
                     #print("length of related to for mcp: ", len(lcRelation.getRelatedToObjects(mcp)))
                     #print("length of related from for mcp: ", len(lcRelation.getRelatedToObjects(mcp)))
@@ -827,7 +1090,7 @@ for sample in sampleNames:
                                     if acceptanceCutsDisplaced(mcpDaughterDaughter):
                                         daughter_reconstructable = True
                                         n_recoable_daughter += 1
-                                        print("recoable daughter")
+                                        #print("recoable daughter")
                                         #print("is stau displaced product")
 
                                         mcp_daughter_p = mcpDaughterDaughter.getMomentum()
@@ -856,7 +1119,7 @@ for sample in sampleNames:
                                             dr_tracks_checked_rt.push_back(dr)
 
 
-                                            print("mcp pdgid, dr, mcp pt, track pt:", pdg, dr, mcp_daughterDaughter_tlv.Perp(), pt)
+                                            #print("mcp pdgid, dr, mcp pt, track pt:", pdg, dr, mcp_daughterDaughter_tlv.Perp(), pt)
                                             if abs(pdg == 211) and dr < 0.005:
                                                 r_positions = []
                                                 z_positions = []
@@ -864,7 +1127,7 @@ for sample in sampleNames:
                                                     position = hit.getPosition()
                                                     x, y, z = position[0], position[1], position[2]
                                                     r = np.sqrt(x**2 + y**2)  # Calculate r
-                                                    print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
+                                                    #print("hit pos_x, pos_y, pos_r, pos_z, at time:", position[0], position[1], r, position[2], hit.getTime())
                                                     # Append r and z to the lists
                                                     r_positions.append(r)
                                                     z_positions.append(z)
@@ -1437,8 +1700,13 @@ for sample in sampleNames:
         print("\t%i Stau MCPs"%n_mcp_stau)
         print('\t%i reconstructable stau tracks'%(num_reconstructable_stau_tracks))
         print('\t%i matched stau tracks'%(num_matched_stau_tracks))
-        stau_eff = float(num_matched_stau_tracks) / float(n_mcp_stau)
-        stau_eff_dr = float(num_matched_stau_dr_tracks) / float(n_mcp_stau)
+        if n_mcp_stau > 0:
+            stau_eff = float(num_matched_stau_tracks) / float(n_mcp_stau)
+            stau_eff_dr = float(num_matched_stau_dr_tracks) / float(n_mcp_stau)
+        else:
+            stau_eff = 0
+            stau_eff_dr = 0
+        
         if (num_reconstructable_stau_tracks > 0):
             stau_eff_no_acc = float(num_matched_stau_tracks) / (float(num_reconstructable_stau_tracks))
         else: 
@@ -1455,11 +1723,18 @@ for sample in sampleNames:
         print("\t n recoable stau decay products:", n_recoable_daughter / max_events)
         print("matched daughter tracks per event:", num_matched_daughter_tracks / max_events)
         print("matched (dr) daughter tracks per event:", num_matched_decayproduct_dr_tracks / max_events)
-        daughter_eff = float(num_matched_daughter_tracks) / float(n_charged_mcp_daughter) 
-        daughter_eff_acc = float(num_matched_daughter_tracks) / float(n_recoable_daughter)
-
-        daughter_eff_dr = float(num_matched_decayproduct_dr_tracks) / float(n_charged_mcp_daughter) 
-        daughter_eff_dr_acc = float(num_matched_decayproduct_dr_tracks) / float(n_recoable_daughter)
+        if n_charged_mcp_daughter > 0:
+            daughter_eff = float(num_matched_daughter_tracks) / float(n_charged_mcp_daughter) 
+            daughter_eff_acc = float(num_matched_daughter_tracks) / float(n_recoable_daughter)
+        else:
+            daughter_eff = 0
+            daughter_eff_acc = 0
+        if n_charged_mcp_daughter > 0:
+            daughter_eff_dr = float(num_matched_decayproduct_dr_tracks) / float(n_charged_mcp_daughter) 
+            daughter_eff_dr_acc = float(num_matched_decayproduct_dr_tracks) / float(n_recoable_daughter)
+        else:
+            daughter_eff_dr = 0
+            daughter_eff_dr_acc = 0
 
         print("Approx. Displaced Total Tracking Eff: ", daughter_eff)
         print("Displaced Total Tracking Eff w/ Acceptance: ", daughter_eff_acc) 
@@ -1469,6 +1744,327 @@ for sample in sampleNames:
         print("duplicate tracks per event:", float(num_dupes) / float(max_events))
         print("unassociated fake tracks per event:", float(num_unassociated_fake_tracks) / float(max_events))
         print("multiple particle fake tracks per event:", float(num_mult_particles_fake_tracks) / float(max_events))
+        if n_pion_tracks > 0:
+            print("radiated pions per event:", total_radiated_pions / i)
+            print("average pion ptres:", total_ptres_pions / n_pion_tracks)
+            print("pion tracking efficiency:", n_pion_tracks / i)
+        if n_muon_tracks > 0:
+            print("radiated muons per event:", total_radiated_muons / i)
+            print("average muon ptres:", total_ptres_muons / n_muon_tracks)
+            print("muon tracking efficiency:", n_muon_tracks / i)
+        
+        
+
+        # After the event loop, create the plot
+        import matplotlib.pyplot as plt
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(hits_z_list_all, hits_r_list_all, s=2, color='blue', label='Pion Track Hit')
+        plt.xlabel('z position [mm]', fontsize=14)
+        plt.ylabel('r position [mm]', fontsize=14)
+        plt.title(f'Pion Track Hits in r-z Plane [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_hits_rz_plane.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(nhits_list, ptres_list, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Number of Hits', fontsize=14)
+        plt.ylabel('Track pT Res. (|Truth - Track| / Truth)', fontsize=14)
+        plt.title(f'pT Resolution vs Number of Hits (ptRes < 1.0) [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nhits_vs_ptres.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(nhits_list_all, ptres_list_all, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Number of Hits', fontsize=14)
+        plt.ylabel('Track pT Res. (|Truth - Track| / Truth)', fontsize=14)
+        plt.title(f'pT Resolution vs Number of Hits (all tracks) [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nhits_vs_ptres_all.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(eta_list, ptres_list, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Track Eta', fontsize=14)
+        plt.ylabel('Track pT Res. (|Truth - Track| / Truth)', fontsize=14)
+        plt.title(f'pT Resolution vs Eta (< 1.0) [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_eta_vs_ptres.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(truth_pt, ptres_list, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Truth pT', fontsize=14)
+        plt.ylabel('Track pT Res. (|Truth - Track| / Truth)', fontsize=14)
+        plt.title(f'pT Resolution vs Eta (< 1.0) [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_truthpt_vs_ptres.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(truth_pt_all, ptres_list_all, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Truth pT', fontsize=14)
+        plt.ylabel('Track pT Res. (|Truth - Track| / Truth)', fontsize=14)
+        plt.title(f'pT Resolution vs Eta (all tracks) [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_truthpt_vs_ptres_all.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(nhits_list_some, track_pt_some, color='blue', alpha=0.7, label='Pion Track')
+        plt.xlabel('Number of Hits', fontsize=14)
+        plt.ylabel('Track pT', fontsize=14)
+        plt.title(f'Track pT vs Number of Hits [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.legend()
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nhits_vs_trackpt_all.png"
+        plt.savefig(filename)  # Save the plot as an image file
+        plt.show()
+
+        # Assuming nhits_list_some is a list or array of the number of hits for tracks
+        plt.figure(figsize=(8, 6))
+        plt.hist(nhits_list_some, bins=20, color='blue', alpha=0.7, edgecolor='black', density=True)  # Customize bins as needed
+        plt.xlabel('Number of Hits per Track', fontsize=14)
+        plt.ylabel('Normalized Count', fontsize=14)
+        plt.title(f'Distribution of Hits per Track [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nhits_pertrack.png"
+        plt.savefig(filename)  # Save the histogram as an image file
+        plt.show()
+
+        # Assuming nhits_list_some is a list or array of the number of hits for tracks
+        plt.figure(figsize=(8, 6))
+        plt.hist(npixelhits_list_all, bins=12, color='blue', alpha=0.7, edgecolor='black', density=True)  # Customize bins as needed
+        plt.xlabel('Number of Hits per Track', fontsize=14)
+        plt.ylabel('Normalized Count', fontsize=14)
+        plt.title(f'Distribution of Hits per Track [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nvxdhits_pertrack.png"
+        plt.savefig(filename)  # Save the histogram as an image file
+        plt.show()
+
+        # Assuming nhits_list_some is a list or array of the number of hits for tracks
+        plt.figure(figsize=(8, 6))
+        plt.hist(ninnerhits_list_all, bins=6, color='blue', alpha=0.7, edgecolor='black', density=True)  # Customize bins as needed
+        plt.xlabel('Number of Hits per Track', fontsize=14)
+        plt.ylabel('Normalized Count', fontsize=14)
+        plt.title(f'Distribution of Hits per Track [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_ninnerhits_pertrack.png"
+        plt.savefig(filename)  # Save the histogram as an image file
+        plt.show()
+
+        # Assuming nhits_list_some is a list or array of the number of hits for tracks
+        plt.figure(figsize=(8, 6))
+        plt.hist(nouterhits_list_all, bins=6, color='blue', alpha=0.7, edgecolor='black', density=True)  # Customize bins as needed
+        plt.xlabel('Number of Hits per Track', fontsize=14)
+        plt.ylabel('Normalized Count', fontsize=14)
+        plt.title(f'Distribution of Hits per Track [{sample}]', fontsize=16)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        # Dynamically name the file
+        filename = f"ParticleGunPlots/{sample}_nouterhits_pertrack.png"
+        plt.savefig(filename)  # Save the histogram as an image file
+        plt.show()
+
+        def plot_binned_mean_with_error(x, y, xlabel, ylabel, title, filename, bins=50):
+            """
+            Plot the binned average and standard error of y as a function of x.
+
+            Args:
+            - x: array-like, x-values
+            - y: array-like, y-values
+            - xlabel: str, x-axis label
+            - ylabel: str, y-axis label
+            - title: str, plot title
+            - filename: str, path to save the plot
+            - bins: int, number of bins
+            """
+            # Bin the data
+            bin_means, bin_edges, binnumber = stats.binned_statistic(x, y, statistic='mean', bins=bins)
+            bin_std, _, _ = stats.binned_statistic(x, y, statistic='std', bins=bins)
+            bin_counts, _, _ = stats.binned_statistic(x, y, statistic='count', bins=bins)
+
+            # Compute the standard error
+            bin_se = bin_std / np.sqrt(bin_counts)
+            bin_se = np.nan_to_num(bin_se)  # Handle divisions by zero gracefully
+
+            # Bin centers for plotting
+            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+            # Plot the result
+            plt.figure(figsize=(8, 6))
+            plt.errorbar(bin_centers, bin_means, yerr=bin_se, fmt='o', color='blue', ecolor='black', capsize=3, label='Binned Mean')
+            plt.xlabel(xlabel, fontsize=14)
+            plt.ylabel(ylabel, fontsize=14)
+            plt.title(title, fontsize=16)
+            plt.grid(True, linestyle='--', alpha=0.5)
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(filename)
+            plt.show()
+
+
+        # Replace scatter plots with binned mean plots
+        from scipy import stats
+
+        # 1. Number of Hits vs pT Resolution (ptRes < 1.0)
+        plot_binned_mean_with_error(
+            nhits_list, ptres_list, 
+            xlabel='Number of Hits', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Number of Hits (ptRes < 1.0) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_nhits_vs_ptres.png"
+        )
+
+        # 2. Number of Hits vs pT Resolution (All Tracks)
+        plot_binned_mean_with_error(
+            nhits_list_all, ptres_list_all, 
+            xlabel='Number of Hits', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Number of Hits (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_nhits_vs_ptres_all.png"
+        )
+
+         # 2. Number of Hits vs pT Resolution (All Tracks)
+        plot_binned_mean_with_error(
+            npixelhits_list_all, ptres_list_all, 
+            xlabel='Number of Pixel Hits', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Number of Hits (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_npixelhits_vs_ptres_all.png"
+        )
+
+         # 2. Number of Hits vs pT Resolution (All Tracks)
+        plot_binned_mean_with_error(
+            ninnerhits_list_all, ptres_list_all, 
+            xlabel='Number of IT Hits', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Number of Hits (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_ninnerhits_vs_ptres_all.png"
+        )
+
+         # 2. Number of Hits vs pT Resolution (All Tracks)
+        plot_binned_mean_with_error(
+            nouterhits_list_all, ptres_list_all, 
+            xlabel='Number of OT Hits', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Number of Hits (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_nouterhits_vs_ptres_all.png"
+        )
+
+        # 2. Number of Hits vs pT Resolution (All Tracks)
+        plot_binned_mean_with_error(
+            nhits_list_all, deltaqoverp_all, 
+            xlabel='Number of Hits', 
+            ylabel='qoverp (Truth - Reco.) [GeV^-1]', 
+            title=f'qoverp res. vs Number of Hits (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_nhits_vs_qoverp_all.png"
+        )
+
+        # 3. Eta vs pT Resolution
+        plot_binned_mean_with_error(
+            eta_list, ptres_list, 
+            xlabel='Track Eta', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Eta (< 1.0) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_eta_vs_ptres.png",
+            bins=15
+        )
+
+        # 3. Eta vs pT Resolution
+        plot_binned_mean_with_error(
+            eta_list_all, ptres_list_all, 
+            xlabel='Track Eta', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Eta (< 1.0) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_eta_vs_ptres_all.png",
+            bins=15
+        )
+
+        # 4. Truth pT vs pT Resolution
+        plot_binned_mean_with_error(
+            truth_pt, ptres_list, 
+            xlabel='Truth pT', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Truth pT (< 1.0) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_truthpt_vs_ptres.png",
+            bins=10
+        )
+
+        # 5. Truth pT (all tracks) vs pT Resolution
+        plot_binned_mean_with_error(
+            truth_pt_all, ptres_list_all, 
+            xlabel='Truth pT', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs Truth pT (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_truthpt_vs_ptres_all.png",
+            bins=10
+        )
+
+        # 6. Number of Hits vs Track pT
+        plot_binned_mean_with_error(
+            nhits_list_some, track_pt_some, 
+            xlabel='Number of Hits', 
+            ylabel='Track pT', 
+            title=f'Pion Track pT vs Number of Hits [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_nhits_vs_trackpt_all.png"
+        )
+
+        # 7. chi2 red (all tracks) vs pT Resolution
+        plot_binned_mean_with_error(
+            chi2red_list_all, ptres_list_all, 
+            xlabel='chi^2 / dof', 
+            ylabel='Track pT Res. (|Truth - Track| / Truth)', 
+            title=f'pT Resolution vs chi^2 reduced (all tracks) [{sample}]', 
+            filename=f"ParticleGunPlots/{sample}_hist_chi2red_vs_ptres_all.png",
+            bins=10
+        )
 
         # Write the tree to the file
         file.Write()

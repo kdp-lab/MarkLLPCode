@@ -67,7 +67,7 @@ echo "set stashcp client for non-OSG images"
 # Copy finished sim file
 cat  /etc/*-release  | grep VERSION_ID
 export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
-$STASHCP -d ${input_file}_sim${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/sim_osg_condor/${input_file}_sim${proc_id}.slcio
+$STASHCP -d ${input_file}_sim${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/2500evSim/${input_file}_sim${proc_id}.slcio
 echo ">>> transfer completed"
 
 
