@@ -1097,10 +1097,10 @@ std::string timing
         int veloBin = stau_nhits_map[fileName]->FindBin(LC_stau_nhits->at(iStauTrack));
         std::cout << "velobin: " << veloBin << "\n";
         std::cout << "LC_stau_nhits->at(iStauTrack): " << LC_stau_nhits->at(iStauTrack) << "\n";
-        stau_true_velocity->Fill(LC_stau_true_velo->at(iStauTrack));
-        stau_velo_residuals->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
-        stau_velo_residuals_map[fileName]->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
-        if (veloBin > 0) veloResByBin[veloBin - 1].push_back(LC_stau_velo_res->at(iStauTrack) / LC_stau_true_velo->at(iStauTrack)); // COMMENT OUT WHEN RUNNING OVER OLDER SAMPLES
+        //stau_true_velocity->Fill(LC_stau_true_velo->at(iStauTrack));
+        //stau_velo_residuals->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
+        //stau_velo_residuals_map[fileName]->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
+        //if (veloBin > 0) veloResByBin[veloBin - 1].push_back(LC_stau_velo_res->at(iStauTrack) / LC_stau_true_velo->at(iStauTrack)); // COMMENT OUT WHEN RUNNING OVER OLDER SAMPLES
         
         
         stau_track_pt_map[fileName]->Fill(LC_stau_track_pt->at(iStauTrack));
@@ -2521,7 +2521,7 @@ void callRootAnalyzer(){
   //std::string timing = "mediumNoBIBStripsOff"; 
   //std::string timing = "mediumNoBIBPropBack"; 
   //std::string timing = "mediumDisplaced"; 
-  std::string timing = "openHouse"; 
+  std::string timing = "mediumPrompt"; 
   //fileNames = {"1000_0.1"};
   //fileNames = {"1000_1", "1000_1_osgcomparison"};
   //fileNames = {"1000_1_osgcomparison", "2500_1_osgcomparison", "4000_1_osgcomparison"};
@@ -2529,7 +2529,7 @@ void callRootAnalyzer(){
   //fileNames = {"1000_1", "2500_1", "4000_1"};
   //fileNames = {"2500_10_tight", "4000_10_tight"};
   //fileNames = {"4000_10_tight", "4000_10_medium", "4000_10_loose"};
-  fileNames = {"4000_10_loose_velores", "2500_10_medium_velores"};
+  fileNames = {"4000_10"};
   //fileNames = {"2500_1", "4000_1", "2500_10_medium", "4000_10_medium"};
   //fileNames = {"4000_10_tight", "4000_10_medium", "4000_10_loose", "2500_10_tight", "2500_10_medium", "2500_10_loose"};
   initialize_histograms(fileNames);
