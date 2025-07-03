@@ -1073,8 +1073,6 @@ std::string timing
 
       std::vector<float > previousEtas;
       for (unsigned int iStauTrack = 0; iStauTrack < LC_stau_pt_match->size(); ++iStauTrack){ 
-        std::cout << "test 0" << "\n";
-
         // Use std::find to check if the value exists in the vector
         if (isApproximatelyEqualToAny(previousEtas, LC_stau_eta_match->at(iStauTrack), 0.001)) { // FIXME do this with parent / daughter mcp relations later!! 
           //std::cout << "Value " << LC_stau_eta_match->at(iStauTrack) << " exists in the vector." << std::endl;
@@ -1225,24 +1223,24 @@ std::string timing
   } // OUTSIDE EVENT LOOP
 
   for (int bin = 0; bin < nPtBins; ++bin){
-    PtRelvsPt->SetBinContent(bin, computeMean(ptResByBin[bin]));
-    PtRelvsPt->SetBinError(bin, computeStandardError(ptResByBin[bin], computeStandardDeviation(ptResByBin[bin], computeMean(ptResByBin[bin]))));
+    PtRelvsPt->SetBinContent(bin + 1, computeMean(ptResByBin[bin]));
+    PtRelvsPt->SetBinError(bin + 1, computeStandardError(ptResByBin[bin], computeStandardDeviation(ptResByBin[bin], computeMean(ptResByBin[bin]))));
   }
 
   for (int bin = 0; bin < nNHitsBins_rxy; ++bin){
-    nhits_vs_rxy->SetBinContent(bin, computeMean(rxyByBin[bin]));
-    nhits_vs_rxy->SetBinError(bin, computeStandardError(rxyByBin[bin], computeStandardDeviation(rxyByBin[bin], computeMean(rxyByBin[bin]))));
+    nhits_vs_rxy->SetBinContent(bin + 1, computeMean(rxyByBin[bin]));
+    nhits_vs_rxy->SetBinError(bin + 1, computeStandardError(rxyByBin[bin], computeStandardDeviation(rxyByBin[bin], computeMean(rxyByBin[bin]))));
   }
 
   for (int bin = 0; bin < nNHitsBins_d0; ++bin){
-    nhits_vs_d0->SetBinContent(bin, computeMean(d0ByBin[bin]));
-    nhits_vs_d0->SetBinError(bin, computeStandardError(d0ByBin[bin], computeStandardDeviation(d0ByBin[bin], computeMean(d0ByBin[bin]))));
+    nhits_vs_d0->SetBinContent(bin + 1, computeMean(d0ByBin[bin]));
+    nhits_vs_d0->SetBinError(bin + 1, computeStandardError(d0ByBin[bin], computeStandardDeviation(d0ByBin[bin], computeMean(d0ByBin[bin]))));
   }
   
   for (int bin = 0; bin < nVeloBins; ++bin){
     std::cout << "test 1" << "\n";
-    stau_velores_map[fileName]->SetBinContent(bin, computeMean(veloResByBin[bin]));
-    stau_velores_map[fileName]->SetBinError(bin, computeStandardError(veloResByBin[bin], computeStandardDeviation(veloResByBin[bin], computeMean(veloResByBin[bin]))));
+    stau_velores_map[fileName]->SetBinContent(bin + 1, computeMean(veloResByBin[bin]));
+    stau_velores_map[fileName]->SetBinError(bin + 1, computeStandardError(veloResByBin[bin], computeStandardDeviation(veloResByBin[bin], computeMean(veloResByBin[bin]))));
   }
 
   /// Draw and save histograms
