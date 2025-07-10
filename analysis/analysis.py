@@ -361,6 +361,8 @@ for sample in sampleNames:
     daughter_track_tree.Branch('LC_daughter_ndf', LC_daughter_ndf_rt)
     LC_daughter_chi2_rt = ROOT.std.vector('float')()
     daughter_track_tree.Branch('LC_daughter_chi2', LC_daughter_chi2_rt)
+    LC_daughter_chi2_red_rt = ROOT.std.vector('float')()
+    daughter_track_tree.Branch('LC_daughter_chi2_red_rt', LC_daughter_chi2_red_rt)
     LC_daughter_d0_rt = ROOT.std.vector('float')()
     daughter_track_tree.Branch('LC_daughter_d0', LC_daughter_d0_rt)
     LC_daughter_z0_rt = ROOT.std.vector('float')()
@@ -696,7 +698,7 @@ for sample in sampleNames:
             mcp_trk_indices_dr_list = []
             passed_mcp_trk_indices_dr_list = []
             for mcp in mcpCollection:
-
+                print("pdg of mcp (unsorted):", mcp.getPDG())
                 mcp_p = mcp.getMomentum()
                 mcp_tlv = ROOT.TLorentzVector()
                 mcp_tlv.SetPxPyPzE(mcp_p[0], mcp_p[1], mcp_p[2], mcp.getEnergy())
@@ -910,11 +912,14 @@ for sample in sampleNames:
                         daughter_reconstructable = False
                         if abs(mcpDaughter.getPDG())==1000015 or abs(mcpDaughter.getPDG())==2000015: ### IGNORE STAUS
                             continue
-                        #print("pdgid of daughter:", mcpDaughter.getPDG())
+                        print("pdgid of daughter:", mcpDaughter.getPDG())
+                        if (mcpDaughter.getPDG() == 11):
+                            parentsOfElectron = mcpDaughter.getParents()
+                            for parentOfElectron in parentsOfElectron:
+                                print("parentOfElectron pdg id:", parentOfElectron.getPDG())
                         if (mcpDaughter.getCharge() != 0):
                             if mcpDaughter.getGeneratorStatus() == 0:
                                 continue
-
                         
                             daughterHasTrack = False
                             daughter_reconstructable = False
@@ -980,7 +985,7 @@ for sample in sampleNames:
                                             ipion += 1
                                         for drTrack in trackCollection:
                                             drTrack_chi2red = drTrack.getChi2() / float(drTrack.getNdf())
-                                            if drTrack_chi2red > 3.0: continue
+                                            #if drTrack_chi2red > 3.0: continue
                                             theta = np.pi/2- np.arctan(drTrack.getTanLambda())
                                             phi = drTrack.getPhi()
                                             eta = -np.log(np.tan(theta/2))
@@ -1119,6 +1124,8 @@ for sample in sampleNames:
                                             LC_daughter_phi_match_rt.push_back(mcp_daughterDaughter_tlv.Phi())
                                             LC_daughter_ndf_rt.push_back(track.getNdf())
                                             LC_daughter_chi2_rt.push_back(track.getChi2())
+                                            LC_daughter_chi2_red_rt.push_back(track.getChi2() / track.getNdf())
+                                            print("displated chi2 reduced:", track.getChi2() / track.getNdf())
                                             LC_daughter_d0_rt.push_back(d0)
                                             LC_daughter_z0_rt.push_back(z0)
                                             LC_daughter_d0_match_rt.push_back(daughter_d0)
@@ -1300,6 +1307,7 @@ for sample in sampleNames:
             LC_daughter_track_theta_rt.clear()
             LC_daughter_phi_match_rt.clear()
             LC_daughter_ndf_rt.clear()
+            LC_daughter_chi2_red_rt.clear()
             LC_daughter_chi2_rt.clear()
             LC_daughter_d0_rt.clear()
             LC_daughter_z0_rt.clear()
@@ -1345,6 +1353,21 @@ for sample in sampleNames:
             LC_stau_hit_z_rt.clear()
             # Loop over the track objects
             for track in trackCollection:
+                print("track pt: ", 0.2998 * Bfield / fabs(track.getOmega() * 1000.))
+                print("track chi2 red:", track.getChi2() / track.getNdf())
+                matchedTrackMCPs = lcRelation.getRelatedFromObjects(track)
+                if (len(matchedTrackMCPs) > 0):
+                    for matchedTrackMCP in matchedTrackMCPs:
+                        print("pdg id of matched track mcp:", matchedTrackMCP.getPDG())
+                        print("status of matched track mcp:", matchedTrackMCP.getGeneratorStatus())
+                        matchedmcp_vx, matchedmcp_vy, matchedmcp_vz = matchedTrackMCP.getVertex()[0], matchedTrackMCP.getVertex()[1], matchedTrackMCP.getVertex()[2]
+                        matchedmcp_prod_xy = sqrt(matchedmcp_vx**2 + matchedmcp_vy**2)
+                        matchedmcp_prod_xyz = sqrt(matchedmcp_vx**2 + matchedmcp_vy**2 + matchedmcp_vz**2)
+                        print("matched track mcp prod xy:", matchedmcp_prod_xy)
+                        for parent in matchedTrackMCP.getParents():
+                            print("pdg id of matched track mcp parent:", parent.getPDG())
+                            for parentParent in parent.getParents():
+                                print("pdg id of matched track mcp parent parent:", parentParent.getPDG())
                 isFakeTrack = False
                 
                 pixel_nhit = 0
@@ -1402,6 +1425,8 @@ for sample in sampleNames:
                     hit_layer_rt.push_back(layer)
                     hit_side_rt.push_back(side)
                     lastLayer = layer
+                print("n total hits:", pixel_nhit / 0.5 + inner_nhit + outer_nhit)
+                print("n layers crossed:", nLayersCrossed)
                 if(nLayersCrossed < 3.5):
                     print("track did not pass n layers / n hits cut")
                     continue

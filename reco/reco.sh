@@ -12,6 +12,16 @@ which Marlin
 echo "<<<Check if input files were copied from the origin"
 ls -lta 
 
+
+wget https://dl.pelicanplatform.org/7.15.3/pelican_Linux_x86_64.tar.gz
+gunzip pelican_Linux_x86_64.tar.gz 
+tar -xvmf pelican_Linux_x86_64.tar 
+export PATH=${PWD}/pelican-7.15.3:$PATH
+
+target_federation=osg-htc.org
+origin_directory=/ospool/uc-shared/project/futurecolliders
+
+
 # Initialize variables
 input_file=""
 output_directory=""
@@ -55,15 +65,15 @@ echo "Executing command: $command"
 eval $command
 
 
-echo "<<<copy that local file back to the origin"
-echo "set stashcp client for non-OSG images"
+#echo "<<<copy that local file back to the origin"
+#echo "set stashcp client for non-OSG images"
 # Copy finished sim file
-cat  /etc/*-release  | grep VERSION_ID
-export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
-$STASHCP -d ${input_file}_reco${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/RecoMediumTimingTwoPasses0pBIB/${input_file}_reco${proc_id}.slcio
-echo ">>> transfer completed"
+#cat  /etc/*-release  | grep VERSION_ID
+#export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
+#$STASHCP -d ${input_file}_reco${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/RecoMediumTimingTwoPasses0pBIB/${input_file}_reco${proc_id}.slcio
+#echo ">>> transfer completed"
 
-
+pelican object put -d ${input_file}_reco${proc_id}.slcio pelican://${target_federation}${origin_directory}/larsonma/RecoMediumTimingLRT10pBIBNoChi2Cut/${input_file}_reco${proc_id}.slcio
 
 echo "<<<Delete input files so they don't get transfered twice on exit"
 rm -rf reco_steer.py

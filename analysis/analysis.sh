@@ -11,6 +11,11 @@ which Marlin
 echo "<<<Check if input files were copied from the origin"
 ls -lta 
 
+#wget https://dl.pelicanplatform.org/7.15.3/pelican_Linux_x86_64.tar.gz
+#gunzip pelican_Linux_x86_64.tar.gz 
+#tar -xvmf pelican_Linux_x86_64.tar 
+#export PATH=${PWD}/pelican-7.15.3:$PATH
+
 # Initialize variables
 input_file=""
 output_directory=""
@@ -58,8 +63,8 @@ echo "<<<copy that local file back to the origin"
 echo "set stashcp client for non-OSG images"
 # Copy finished sim file
 cat  /etc/*-release  | grep VERSION_ID
-export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
-$STASHCP -d ${input_file}_analysis${proc_id}.root /scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/analysis/AnalysisJobsOutputNoBib/${input_file}_analysis${proc_id}.root
+#export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
+#$STASHCP -d ${input_file}_analysis${proc_id}.root /scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/analysis/AnalysisJobsOutputNoBib/${input_file}_analysis${proc_id}.root
 echo ">>> transfer completed"
 
 

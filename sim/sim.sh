@@ -66,15 +66,15 @@ echo "<<<copy that local file back to the origin"
 echo "set stashcp client for non-OSG images"
 # Copy finished sim file
 cat  /etc/*-release  | grep VERSION_ID
-export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
-$STASHCP -d ${input_file}_sim${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/2500evSim/${input_file}_sim${proc_id}.slcio
+#export STASHCP=/cvmfs/oasis.opensciencegrid.org/osg-software/osg-wn-client/23/current/el8-x86_64/usr/bin/stashcp
+#$STASHCP -d ${input_file}_sim${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/2500evSim/${input_file}_sim${proc_id}.slcio
 echo ">>> transfer completed"
 
-
+ls -lhtr
 
 echo "<<<Delete input files so they don't get transferred twice on exit"
 rm -rf steer_baseline.py
 rm -rf $input_file.hepmc
 rm -rf $input_file.tbl
-rm -rf ${input_file}_sim${proc_id}.slcio
+#rm -rf ${input_file}_sim${proc_id}.slcio
 echo ">>> Deletions complete. Test job complete"

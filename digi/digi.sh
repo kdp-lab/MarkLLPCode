@@ -11,6 +11,15 @@ which Marlin
 echo "<<<Check if input files were copied from the origin"
 ls -lta 
 
+wget https://dl.pelicanplatform.org/7.15.3/pelican_Linux_x86_64.tar.gz
+gunzip pelican_Linux_x86_64.tar.gz 
+tar -xvmf pelican_Linux_x86_64.tar 
+export PATH=${PWD}/pelican-7.15.3:$PATH
+
+target_federation=osg-htc.org
+origin_directory=/ospool/uc-shared/project/futurecolliders
+
+
 # Initialize variables
 input_file=""
 output_directory=""
@@ -71,13 +80,16 @@ echo "set stashcp client for non-OSG images"
 # Copy finished sim file
 cat  /etc/*-release  | grep VERSION_ID
 
-#pelican object put -d ${input_file}_digi${proc_id}.slcio uc-shared/project/futurecolliders/larsonma/DigiMediumTiming10pBIB/${input_file}_digi${proc_id}.slcio
+pelican object put -d ${input_file}_digi${proc_id}.slcio pelican://${target_federation}${origin_directory}/larsonma/DigiTestJobs/${input_file}_digi${proc_id}.slcio
 #$STASHCP -d ${input_file}_digi${proc_id}.slcio osdf:///ospool/uc-shared/project/futurecolliders/larsonma/DigiMediumTiming10pBIB/${input_file}_digi${proc_id}.slcio
 #transfer_output_remaps = "${input_file}_digi${proc_id}.slcio=osdf:///ospool/uc-shared/project/futurecolliders/larsonma/DigiMediumTiming10pBIB/${input_file}_digi${proc_id}.slcio"
 echo ">>> transfer completed"
 
+echo ""
+ls -l
+
 echo "<<<Delete input files so they don't get transfered twice on exit"
 rm -rf digi_steer.py
 rm -rf ${input_file}_sim${proc_id}.slcio
-#rm -rf ${input_file}_digi${proc_id}.slcio
+rm -rf ${input_file}_digi${proc_id}.slcio
 echo ">>> Deletions complete. Test job complete"
