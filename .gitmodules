@@ -1,0 +1,3 @@
+[submodule "mucoll-benchmarks"]
+    path = mucoll-benchmarks
+    url = https://github.com/mlarson02/mucoll-benchmarks-LLPs
