@@ -16,7 +16,7 @@ fm._get_fontconfig_fonts()
 ROOT.gROOT.SetBatch()
 
 # Set up some options, constants
-max_events = 25000 # Set to -1 to run over all events
+max_events = 5 # Set to -1 to run over all events
 Bfield = 3.57 #T, 3.57 for legacy
 
 def check_hard_radiation(mcp, fractional_threshold):
@@ -60,7 +60,7 @@ def acceptanceCutsDisplaced(mcp):
 # Note: these are using the path convention from the singularity command in the MuCol tutorial (see README)
 #base_path = "/home/larsonma/MarkLLPCode/reco/"
 base_path = "/scratch/larsonma/tutorial2024/LLPStudies/MarkLLPCode/reco/rootOutput/"
-input_path = "/ospool/uc-shared/project/futurecolliders/larsonma/ParticleGunReco/"
+input_path = "/ospool/uc-shared/project/futurecolliders/larsonma/Reco100pBIBForPlot/"
 #input_path = "/local/d1/mu+mu-/reco_v3/osg_comparison_final/"
 #input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns/"
 #input_path = "/local/d1/mu+mu-/reco_v3/100_150_0_timingchange_32ns64ns_BIB/"
@@ -70,7 +70,8 @@ input_path = "/ospool/uc-shared/project/futurecolliders/larsonma/ParticleGunReco
 #sampleNames = ["4000_0.1", "4000_1", "4000_10", "4500_0.1", "4500_1", "4500_10"]
 #sampleNames = ["bib"]
 #sampleNames = ["central_3TeV_muon", "central_500GeV_muon", "central_50GeV_muon"]#, "central_3TeV_pion_RESCHANGE", "central_3TeV_pion_RESCHANGEbetter", "central_3TeV_pion_originalreco", "central_500GeV_pion", "central_50GeV_pion"]
-sampleNames = ["pgun_pion_3000GeV_strips", "pgun_pion_500GeV_strips", "pgun_pion_50GeV_strips"]
+#sampleNames = ["pgun_pion_3000GeV_strips", "pgun_pion_500GeV_strips", "pgun_pion_50GeV_strips"]
+sampleNames =["4000_10_forplot"]
 #sampleNames = ["pgun_pion_3000GeV", "pgun_pion_500GeV", "pgun_pion_50GeV"]
 #sampleNames = ["central_pion_gun_originalreco"]
 #sampleNames = ["2500_10", "4000_1", "4000_10", "4500_10"]
@@ -102,6 +103,8 @@ for sample in sampleNames:
     dr_tracks_checked_tree = ROOT.TTree("TracksCheckedWithDr", "Full track collection checked per mcp")
     fake_track_tree = ROOT.TTree("AllFakeTracks", "All fake tracks, w/o mcp or multiple non-duplicate MCPs")
     hits_tree = ROOT.TTree("AllHits", "Info about all tracker hits")
+
+    allhits_tree = ROOT.TTree("AllHitsActual", "Info about all tracker hits")
 
     # Create empty lists for each variable, and empty root variables to fill root file, also create branches
     mcp_pt_rt = ROOT.std.vector('float')()
@@ -412,6 +415,12 @@ for sample in sampleNames:
     hit_side_rt = ROOT.std.vector('int')()
     hits_tree.Branch('hit_side', hit_side_rt)
 
+
+    z_allhits_rt = ROOT.std.vector('float')()
+    allhits_tree.Branch('z', z_allhits_rt)
+    r_allhits_rt = ROOT.std.vector('float')()
+    allhits_tree.Branch('r', r_allhits_rt)
+
     # sim & reco hits
     sim_VB_x, sim_VB_y, sim_VB_z, sim_VB_time, sim_VB_pdg, sim_VB_mcpid, sim_VB_layer = [], [], [], [], [], [], []
     sim_VE_x, sim_VE_y, sim_VE_z, sim_VE_time, sim_VE_pdg, sim_VE_mcpid, sim_VE_layer = [], [], [], [], [], [], []
@@ -509,6 +518,7 @@ for sample in sampleNames:
             # Get the collections we care about
             mcpCollection = event.getCollection("MCParticle")
             trackCollection = event.getCollection("SiTracks_Refitted") ### NOTE use SiTracks_Refitted
+            allHitCollection = event.getCollection("HitsCollection")
             #hitsCol = event.getCollection("HitsCollection")
             #print("len hits col:", len(hitsCol))
             if "SlimmedHitsCollection" in event.getCollectionNames():
@@ -717,7 +727,7 @@ for sample in sampleNames:
                                 nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
                                 #print("LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits:", LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits)
                                 if (nTotalHits < 3.5): # account for if 1 part of vertex doublet misses hit
-                                    print("doesn't pass nhits cut, skip stau track")
+                                    #print("doesn't pass nhits cut, skip stau track")
                                     continue 
                                 
                                 theta = np.pi/2- np.arctan(pionTrack.getTanLambda())
@@ -783,17 +793,17 @@ for sample in sampleNames:
                             total_radiated_muons += 1
                             muonDaughterDaughters = muonDaughter.getDaughters()
                             for muonDaughterDaughter in muonDaughterDaughters: 
-                                print("mcpDaughterDaughter pdg:", muonDaughterDaughter.getPDG())
+                                #print("mcpDaughterDaughter pdg:", muonDaughterDaughter.getPDG())
                                 muonDaughterDaughter_tlv = ROOT.TLorentzVector()
                                 muonDaughterDaughter_p = muonDaughterDaughter.getMomentum()
                                 muonDaughterDaughter_tlv.SetPxPyPzE(muonDaughterDaughter_p[0], muonDaughterDaughter_p[1], muonDaughterDaughter_p[2], muonDaughterDaughter.getEnergy())
-                                print("muon daughterdaughter pt:", muonDaughterDaughter_tlv.Perp())
+                                #print("muon daughterdaughter pt:", muonDaughterDaughter_tlv.Perp())
                                 if muonDaughterDaughter.getPDG() == 13: 
                                     total_radiated_muons += 1
 
-                    print("muon pt:", mcp_tlv.Perp())
-                    print("muon r, z vertices:", sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2), mcp.getVertex()[2])
-                    print("muon r, z endpoints:", sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2), mcp.getEndpoint()[2])
+                    #print("muon pt:", mcp_tlv.Perp())
+                    #print("muon r, z vertices:", sqrt(mcp.getVertex()[0] ** 2 + mcp.getVertex()[1]**2), mcp.getVertex()[2])
+                    #print("muon r, z endpoints:", sqrt(mcp.getEndpoint()[0] ** 2 + mcp.getEndpoint()[1]**2), mcp.getEndpoint()[2])
                     muonTracks = lcRelation.getRelatedToObjects(mcp)
 
                     for muonTrack in muonTracks:
@@ -845,20 +855,20 @@ for sample in sampleNames:
                                 # Get the particle's charge
                                 charge = mcp.getCharge()
                                 truthqoverp = float(charge)/p_magnitude
-                                print("qoverp track, truth:", qoverp, truthqoverp)
+                                #print("qoverp track, truth:", qoverp, truthqoverp)
 
-                                print("muon track eta, truth eta:", eta, mcp_tlv.Eta())
+                                #print("muon track eta, truth eta:", eta, mcp_tlv.Eta())
                                 pt  = 0.2998 * Bfield / fabs(muonTrack.getOmega() * 1000.)
-                                print("muon track pt, truth pt:", pt, mcp_tlv.Perp())
+                                #print("muon track pt, truth pt:", pt, mcp_tlv.Perp())
                                 
                                 track_tlv = ROOT.TLorentzVector()
                                 track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
                                 dr = mcp_tlv.DeltaR(track_tlv)
                                 nhitz = muonTrack.getTrackerHits().size()
-                                print("muon track nhits:", nhitz)
+                                #print("muon track nhits:", nhitz)
                                 #print("nhits for stau track: ", nhitz)
                                 ptres = abs(mcp_tlv.Perp() - pt) / (mcp_tlv.Perp())
-                                print("muon track ptres |(truth - track) / truth|:", ptres)
+                                #print("muon track ptres |(truth - track) / truth|:", ptres)
                                 if ptres < 10:
                                     total_ptres_muons += ptres
                                     n_muon_tracks += 1
@@ -978,7 +988,7 @@ for sample in sampleNames:
                                 nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
                                 #print("LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits:", LC_pixel_nhit, LC_inner_nhit, LC_outer_nhit, nTotalHits)
                                 if (nTotalHits < 3.5): # account for if 1 part of vertex doublet misses hit
-                                    print("doesn't pass nhits cut, skip stau track")
+                                    #print("doesn't pass nhits cut, skip stau track")
                                     continue 
                                 
                                 theta = np.pi/2- np.arctan(track.getTanLambda())
@@ -1150,7 +1160,7 @@ for sample in sampleNames:
                                         if num_matched_dr_per_daughter > 1 & ipion >= 1: 
                                             # Create a figure and axis for the plot
                                             plt.figure(figsize=(8, 6))
-                                            print("len(track_hit_r_positions):", len(track_hit_r_positions))
+                                            #print("len(track_hit_r_positions):", len(track_hit_r_positions))
                                             # Use a colormap to assign different colors to each track
                                             colors = plt.get_cmap('prism', len(track_hit_r_positions))
 
@@ -1173,8 +1183,8 @@ for sample in sampleNames:
                                             
                                             
                                             minDrIndex = passed_drs.index(min(passed_drs))
-                                            print("mindrindex:", minDrIndex)
-                                            print("passed_track_indices:", passed_track_indices[minDrIndex])
+                                            #print("mindrindex:", minDrIndex)
+                                            #print("passed_track_indices:", passed_track_indices[minDrIndex])
                                             matchedTrackDr = trackCollection[passed_track_indices[minDrIndex]]
 
                                             LC_pixel_nhit = 0
@@ -1208,14 +1218,14 @@ for sample in sampleNames:
                                                     nLayersCrossed += 1 ### NOTE counting each of vertex doublet layers as individual layer
                                                 lastLayer = layer
                                             nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
-                                            print("nTotalHits (dr matched) and nLayersCrossed", nTotalHits, nLayersCrossed)
+                                            #print("nTotalHits (dr matched) and nLayersCrossed", nTotalHits, nLayersCrossed)
                                             if (nTotalHits < 3.5 or nLayersCrossed < 3.5):
-                                                print("doesn't pass nhits cut, skip dr matched daughter 2 track")
+                                                #print("doesn't pass nhits cut, skip dr matched daughter 2 track")
                                                 daughterHasTrack_dr = False 
 
 
                                             if daughterHasTrack_dr and len(passed_drs) > 0: 
-                                                print("found matched (dr) decay product track with dr:", min(passed_drs))
+                                                #print("found matched (dr) decay product track with dr:", min(passed_drs))
                                                 num_matched_decayproduct_dr_tracks += 1
                                                 daughterHasTrack_dr = True
                                             
@@ -1269,7 +1279,7 @@ for sample in sampleNames:
                                                 lastLayer = layer
                                             nTotalHits = (LC_pixel_nhit)/2.0 + LC_inner_nhit + LC_outer_nhit
                                             if (nTotalHits < 3.5 or nLayersCrossed < 3.5):
-                                                print("doesn't pass nhits cut, skip daughter 2 track")
+                                                #print("doesn't pass nhits cut, skip daughter 2 track")
                                                 continue 
                                             theta = np.pi/2- np.arctan(track.getTanLambda())
                                             phi = track.getPhi()
@@ -1279,14 +1289,14 @@ for sample in sampleNames:
                                             track_tlv.SetPtEtaPhiE(pt, eta, phi, 0)
                                             dr = mcp_daughterDaughter_tlv.DeltaR(track_tlv)
                                             nhitz = track.getTrackerHits().size()
-                                            print("nhitz: ", nhitz)
+                                            #print("nhitz: ", nhitz)
                                             ptres = abs(mcp_daughterDaughter_tlv.Perp() - pt) / (mcp_daughterDaughter_tlv.Perp())
                                             d0 = track.getD0()
                                             z0 = track.getZ0()
-                                            print("omega, displaced sig_omega", track.getOmega(), sqrt(track.getCovMatrix()[5]))
+                                            #print("omega, displaced sig_omega", track.getOmega(), sqrt(track.getCovMatrix()[5]))
                                             ptuncertainty = (0.2998 * Bfield / 1000. ) *sqrt(track.getCovMatrix()[5])/(track.getOmega() ** 2)
-                                            print("displaced pt, pt uncertainty:", pt, ptuncertainty)
-                                            print("matched displaced pt:", mcp_daughterDaughter_tlv.Perp())
+                                           # print("displaced pt, pt uncertainty:", pt, ptuncertainty)
+                                            #print("matched displaced pt:", mcp_daughterDaughter_tlv.Perp())
                                             LC_daughter_pt_match_rt.push_back(mcp_daughterDaughter_tlv.Perp())
                                             LC_daughter_track_pt_rt.push_back(pt)
                                             LC_daughter_track_eta_rt.push_back(eta)
@@ -1312,8 +1322,8 @@ for sample in sampleNames:
                                             LC_daughter_pixel_nhits_rt.push_back(LC_pixel_nhit)
                                             LC_daughter_inner_nhits_rt.push_back(LC_inner_nhit)
                                             LC_daughter_outer_nhits_rt.push_back(LC_outer_nhit)
-                                            print("found matched second daughter track for event:", i)
-                                            print("--------------------------------")
+                                            #print("found matched second daughter track for event:", i)
+                                            #print("--------------------------------")
                                             num_matched_daughter_tracks += 1
                                     mcp_daughter_track_bool_rt.push_back(daughterHasTrack)
                                     dr_mcp_daughter_track_bool_rt.push_back(daughterHasTrack_dr)
@@ -1409,6 +1419,18 @@ for sample in sampleNames:
             LC_stau_hit_y_rt.clear()
             LC_stau_hit_z_rt.clear()
             # Loop over the track objects
+            for hit in allHitCollection:
+                position = hit.getPosition()
+                pos_x = position[0]
+                pos_y = position[1]
+                pos_z = position[2]
+                pos_r = sqrt(pos_x**2 + pos_y**2)
+                z_allhits_rt.push_back(pos_z)
+                r_allhits_rt.push_back(pos_r)
+            allhits_tree.Fill()
+            z_allhits_rt.clear()
+            r_allhits_rt.clear()
+
             for track in trackCollection:
                 isFakeTrack = False
                 
@@ -1472,19 +1494,19 @@ for sample in sampleNames:
                     continue
                 track_mcps = lcRelation.getRelatedFromObjects(track)
                 if len(track_mcps) < 1:
-                    print("unassociated fake track")
+                    #print("unassociated fake track")
                     num_unassociated_fake_tracks += 1
                     num_fake_tracks += 1
                     isFakeTrack = True
                 if len(track_mcps) > 1: 
                     pdg_ids = [mcp.getPDG() for mcp in track_mcps]
-                    print("fake pdgids?:", pdg_ids)
-                    if abs(mcp.getPDG())==1000015 or abs(mcp.getPDG())==2000015:
-                        print("stau associated to fake track")
+                    #print("fake pdgids?:", pdg_ids)
+                    #if abs(mcp.getPDG())==1000015 or abs(mcp.getPDG())==2000015:
+                    #    print("stau associated to fake track")
                     fakeParents = mcp.getParents()
-                    for fakeParent in fakeParents:
-                        if abs(fakeParent.getPDG()) == 15:
-                            print("daughter of tau (potentially stau) fake track")
+                    #for fakeParent in fakeParents:
+                        #if abs(fakeParent.getPDG()) == 15:
+                            #print("daughter of tau (potentially stau) fake track")
 
                     # Check if all PDG IDs are the same
                     
@@ -1492,7 +1514,7 @@ for sample in sampleNames:
                     if len(set(pdg_ids)) > 1: ### filter if particles decaying into another
                         if (len(track_mcps) == 2 and (track_mcps[1] in track_mcps[0].getDaughters() or track_mcps[1] in track_mcps[0].getParents())):
                             isFakeTrack = False
-                            print("not truly fake track")
+                            #print("not truly fake track")
                         else:
                             isFakeTrack = True
                             num_mult_particles_fake_tracks += 1
@@ -1502,7 +1524,7 @@ for sample in sampleNames:
                                 num_mult_particles_fake_tracks -= 1
                                 num_fake_tracks -= 1 ## FIXME fix logic here
                             
-                            print("fake track with pdgids:", pdg_ids)
+                            #print("fake track with pdgids:", pdg_ids)
                     
                 if isFakeTrack: ### FAKE TRACK (NO MCPS RELATED)
                     theta = np.pi/2- np.arctan(track.getTanLambda())
@@ -1952,7 +1974,7 @@ for sample in sampleNames:
 
         # Replace scatter plots with binned mean plots
         from scipy import stats
-
+        """
         # 1. Number of Hits vs pT Resolution (ptRes < 1.0)
         plot_binned_mean_with_error(
             nhits_list, ptres_list, 
@@ -2065,7 +2087,7 @@ for sample in sampleNames:
             filename=f"ParticleGunPlots/{sample}_hist_chi2red_vs_ptres_all.png",
             bins=10
         )
-
+        """
         # Write the tree to the file
         file.Write()
         file.Close()

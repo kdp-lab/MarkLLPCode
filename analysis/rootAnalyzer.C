@@ -334,6 +334,9 @@ std::string timing
     if (timing == "openHouse"){
       rootFileDir = "openHouseRootFiles/";
     }
+    if (timing == "medium10pBIBLRTTest"){
+      rootFileDir = "DisplacedMedium10pBIBNoCut/";
+    }
 
     MCPs->Add(rootFileDir + fileName + "_reco.root");
     TChain* StauMCPs = new TChain("StauMCPs");
@@ -350,8 +353,10 @@ std::string timing
     AllFakeTracks->Add(rootFileDir + fileName + "_reco.root");
     TChain* AllHits = new TChain("AllHits");
     AllHits->Add(rootFileDir + fileName + "_reco.root");
+    TChain* AllHitsActual = new TChain("AllHitsActual");
+    AllHitsActual->Add(rootFileDir + fileName + "_reco.root");
 
-    if (MCPs->GetEntries() == 0 || StauMCPs->GetEntries() == 0 || StauDecayProductsMCPs->GetEntries() == 0 || AllTracks->GetEntries() == 0 || AllStauTracks->GetEntries() == 0 || AllDecayProductTracks->GetEntries() == 0 || AllFakeTracks->GetEntries() == 0 || AllHits->GetEntries() == 0) {
+    if (MCPs->GetEntries() == 0 || StauMCPs->GetEntries() == 0 || StauDecayProductsMCPs->GetEntries() == 0 || AllTracks->GetEntries() == 0 || AllStauTracks->GetEntries() == 0 || AllDecayProductTracks->GetEntries() == 0 || AllFakeTracks->GetEntries() == 0 || AllHits->GetEntries() == 0 || AllHitsActual->GetEntries() == 0) {
         cout << "A file / branch doesn't exist or is empty, returning..." << "\n";
         return;
     }
@@ -479,6 +484,10 @@ std::string timing
     std::vector<int>* hit_detector;
     std::vector<int>* hit_side;
 
+
+    std::vector<float>* hitR;
+    std::vector<float>* hitZ;
+
     TBranch* b_mcp_pt;
     TBranch* b_mcp_phi;
     TBranch* b_mcp_eta;
@@ -598,6 +607,9 @@ std::string timing
     TBranch* b_hit_layer;
     TBranch* b_hit_detector;
     TBranch* b_hit_side;
+
+    TBranch* b_hitR;
+    TBranch* b_hitZ;
 
     mcp_pt = 0;
     mcp_phi = 0;
@@ -719,6 +731,9 @@ std::string timing
     hit_layer = 0;
     hit_detector = 0;
     hit_side = 0;
+
+    hitR = 0;
+    hitZ = 0;
     
     // ----------------------------------------------------------------------------------------------------------------
     // Load the files and set branch addresses
@@ -842,8 +857,15 @@ std::string timing
     AllHits->SetBranchAddress("hit_detector", &hit_detector, &b_hit_detector);
     AllHits->SetBranchAddress("hit_side", &hit_side, &b_hit_side);
 
+    AllHitsActual->SetBranchAddress("r", &hitR, &b_hitR);
+    AllHitsActual->SetBranchAddress("z", &hitZ, &b_hitZ);
+
+
+
     // ----------------------------------------------------------------------------------------------------------------
     // Declare histograms to be written to and plotted
+
+    TH2F* hit_rz = new TH2F("hit_rz", ";|z| [mm] ; r [mm]", 11500, 0, 2350, 8000, 0, 1650);
 
     TH1F* stau_mcp_pt = new TH1F("stau_mcp_pt", ";Monte Carlo Stau p_{T} [GeV]; Tracking particles / 100.0 GeV", 11, 1900.0, 3000.0);
     TH1F* stau_mcp_p = new TH1F("stau_mcp_p", ";Monte Carlo Stau p [GeV]; Tracking particles / 100.0 GeV", 20, 0, 5000.0);
@@ -957,6 +979,8 @@ std::string timing
     int numRecoableDisplacedParticles = 0;
     int numTotalDisplacedParticles = 0;
     int numMatchedDisplacedTracks = 0;
+    int numGoodQualityMatchedDisplacedTracks = 0;
+    int displacedChi2RedCut = 5.0;
     int nPtBins = 10;
     int nVeloBins = 15;
     int nNHitsBins_rxy = 25;
@@ -976,6 +1000,12 @@ std::string timing
       StauDecayProductsMCPs->GetEntry(iEvt);
       AllDecayProductTracks->GetEntry(iEvt);
       AllFakeTracks->GetEntry(iEvt);
+      AllHitsActual->GetEntry(iEvt);
+      
+      std::cout << "hitR size: " << hitR->size() << "\n";
+      for (unsigned int iHit = 0; iHit < hitR->size(); ++iHit){
+        hit_rz->Fill(hitZ->at(iHit), hitR->at(iHit));
+      }
 
       std::vector<bool > trueReconstructable; // for each stau determines 
       std::vector<bool > trueHasTrack;// FIXME no longer needed with dividing histograms
@@ -1093,8 +1123,8 @@ std::string timing
         stau_track_pt->Fill(LC_stau_track_pt->at(iStauTrack));
         
         int veloBin = stau_nhits_map[fileName]->FindBin(LC_stau_nhits->at(iStauTrack));
-        std::cout << "velobin: " << veloBin << "\n";
-        std::cout << "LC_stau_nhits->at(iStauTrack): " << LC_stau_nhits->at(iStauTrack) << "\n";
+        //std::cout << "velobin: " << veloBin << "\n";
+        //std::cout << "LC_stau_nhits->at(iStauTrack): " << LC_stau_nhits->at(iStauTrack) << "\n";
         //stau_true_velocity->Fill(LC_stau_true_velo->at(iStauTrack));
         //stau_velo_residuals->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
         //stau_velo_residuals_map[fileName]->Fill(LC_stau_true_velo->at(iStauTrack) - LC_stau_reco_velo->at(iStauTrack));
@@ -1168,12 +1198,15 @@ std::string timing
         int ptBin = displaced_matched_pt->FindBin(LC_daughter_pt_match->at(iDPTrack));
         int rxyBin = displaced_mcp_rxy->FindBin(LC_daughter_r_vertex_match->at(iDPTrack));
         int d0Bin = displaced_mcp_d0->FindBin(abs(LC_daughter_d0->at(iDPTrack)));
-        std::cout << "rxyBin: " << rxyBin << " and d0Bin: " << d0Bin << "\n";
+        //std::cout << "rxyBin: " << rxyBin << " and d0Bin: " << d0Bin << "\n";
         rxyByBin[rxyBin - 1].push_back(LC_daughter_nhits->at(iDPTrack));
         d0ByBin[d0Bin - 1].push_back(LC_daughter_nhits->at(iDPTrack));
         ptResByBin[ptBin - 1].push_back(abs(LC_daughter_track_pt->at(iDPTrack) - LC_daughter_pt_match->at(iDPTrack)) / LC_daughter_pt_match->at(iDPTrack));
         
         displaced_chi2_reduced->Fill(LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack)); 
+        if (LC_daughter_chi2->at(iDPTrack) / LC_daughter_ndf->at(iDPTrack) > displacedChi2RedCut){
+          numGoodQualityMatchedDisplacedTracks++;
+        }
 
         displaced_nhits->Fill(LC_daughter_nhits->at(iDPTrack));
 
@@ -1238,7 +1271,7 @@ std::string timing
   }
   
   for (int bin = 0; bin < nVeloBins; ++bin){
-    std::cout << "test 1" << "\n";
+    //std::cout << "test 1" << "\n";
     stau_velores_map[fileName]->SetBinContent(bin + 1, computeMean(veloResByBin[bin]));
     stau_velores_map[fileName]->SetBinError(bin + 1, computeStandardError(veloResByBin[bin], computeStandardDeviation(veloResByBin[bin], computeMean(veloResByBin[bin]))));
   }
@@ -1272,7 +1305,52 @@ std::string timing
   c.SaveAs(DIR + "stau_matched_eta.pdf");
   stau_track_pt->Draw();
   c.SaveAs(DIR + "stau_track_pt.pdf");
+
+  TCanvas* c2 = new TCanvas("c", "r-z View", 1400, 700);  // Wider canvas for proportional layout
+  c2->SetRightMargin(0.15);  // Leave space for η labels
+  c2->SetTopMargin(0.15);
+  c2->cd();
+  hit_rz->Draw();
+
+  std::vector<double> eta_lines = {0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6};
+  double z_max = 2300;
+  double r_max = 1600;
+  double label_offset = 75;
+
+  TLatex latex;
+  latex.SetTextSize(0.03);
+  latex.SetTextFont(42);
+
+  for (double eta : eta_lines) {
+      double theta = 2.0 * atan(exp(-eta));
+
+      // Draw the η line
+      const int N = 500;
+      double z_vals[N], r_vals[N];
+      for (int i = 0; i < N; ++i) {
+          double z = z_max * i / (N - 1);
+          z_vals[i] = z;
+          r_vals[i] = z * tan(theta);
+      }
+
+      TGraph* gr = new TGraph(N, z_vals, r_vals);
+      gr->SetLineColor(kGray + 1);
+      gr->SetLineStyle(2);
+      gr->Draw("L SAME");
+
+      // Draw label: position depends on η
+      if (eta <= 1.0) {
+          double z = r_max / tan(theta);
+          latex.DrawLatex(z, r_max + label_offset, Form("%.1f", eta));
+      } else {
+          double r = z_max * tan(theta);
+          latex.DrawLatex(z_max + label_offset, r, Form("%.1f", eta));
+      }
+  }
+
+  c2->SaveAs("hitrz_eta_overlay.pdf");
   
+  c.cd();
   stau_velo_residuals->Draw();
   c.SaveAs(DIR + "stau_track_velo_residuals.pdf");
   stau_track_eta->Draw();
@@ -1657,6 +1735,8 @@ std::string timing
   std::cout << "numRecoableDisplacedParticles: " << numRecoableDisplacedParticles << "\n";
   std::cout << "numTotalDisplacedParticles: " << numTotalDisplacedParticles << "\n";
   std::cout << "numMatchedDisplacedTracks: " << numMatchedDisplacedTracks << "\n";
+  std::cout << "num good quality (Chi2 red < 5.0) displaced tracks: " << numGoodQualityMatchedDisplacedTracks << "\n";
+  std::cout << "ratio of good quality to all matched displaced tracks: " << float(numGoodQualityMatchedDisplacedTracks) / float(numMatchedDisplacedTracks) << "\n";
   std::cout << "total displaced tracking efficiency: " << float(numMatchedDisplacedTracks) / float(numRecoableDisplacedParticles) << "\n";
   std::cout << "total displaced tracking AxE: " << float(numMatchedDisplacedTracks) / float(numTotalDisplacedParticles) << "\n";
   }
@@ -1709,6 +1789,9 @@ std::string timing
     }
     if (timing == "openHouse"){
       rootFileDir = "openHouseRootFiles/";
+    }
+    if (timing == "medium10pBIBLRTTest"){
+      rootFileDir = "DisplacedMedium10pBIBNoCut/";
     }
 
     
@@ -2482,6 +2565,8 @@ void SetPlotStyle() {
   // put tick marks on top and RHS of plots
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
+  gStyle->SetTickLength(0.02, "X");  // default is usually ~0.03
+  gStyle->SetTickLength(0.02, "Y");
 }
 
 void mySmallText(Double_t x, Double_t y, Color_t color, char* text) {
@@ -2519,7 +2604,8 @@ void callRootAnalyzer(){
   //std::string timing = "mediumNoBIBStripsOff"; 
   //std::string timing = "mediumNoBIBPropBack"; 
   //std::string timing = "mediumDisplaced"; 
-  std::string timing = "mediumPrompt"; 
+  //std::string timing = "mediumPrompt"; 
+  std::string timing = "medium10pBIBLRTTest";
   //fileNames = {"1000_0.1"};
   //fileNames = {"1000_1", "1000_1_osgcomparison"};
   //fileNames = {"1000_1_osgcomparison", "2500_1_osgcomparison", "4000_1_osgcomparison"};
