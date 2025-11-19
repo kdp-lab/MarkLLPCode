@@ -3,7 +3,7 @@
 NUM_CHUNKS=500
 
 # Shift arguments so remaining ones are the sample names.
-SAMPLE_NAME=4000_10  # Array of sample names.
+SAMPLE_NAME=1000_1  # Array of sample names.
 
 
 # Create a list of all valid ROOT files for the current sample.
@@ -35,7 +35,7 @@ fi
 echo "Merging ROOT files into ${SAMPLE_NAME}.root"
 hadd "${SAMPLE_NAME}_reco.root" $ROOT_FILES
 
-mv ${SAMPLE_NAME}_reco.root openHouseRootFiles/${SAMPLE_NAME}_medium_velores_reco.root
+mv ${SAMPLE_NAME}_reco.root DisplacedMedium10pBIBNoCut/${SAMPLE_NAME}_reco.root
 
 #rm -rf $ROOT_FILES
 
